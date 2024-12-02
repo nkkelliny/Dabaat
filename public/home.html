@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Dabaat - Social Debating Platform for exchanging ideas" />
+    <meta name="author" content="" />
+    <title>Dabaat - Home</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <!-- Bootstrap icons-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="css/styles.css" rel="stylesheet" />
+    <link href="css/main.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Responsive navbar-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container px-5">
+            <a class="navbar-brand" href="#!"><img style="width: 20%;" src="./assets/dabaat_logo.png" alt="Dabaat Logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#debates">Debates</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#community">Community</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> <span id="username">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#profile">Profile</a></li>
+                            <li><a class="dropdown-item" href="#settings">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="logout.html">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Header-->
+    <header class="bg-light py-5" id="home">
+        <div class="container px-5">
+            <div class="row gx-5 justify-content-center">
+                <div class="col-lg-8">
+                    <div class="text-center my-5">
+                        <h1 class="display-5 fw-bolder text-black mb-2">Welcome back to Dabaat!</h1>
+                        <p class="lead text-black-50 mb-4">Continue exploring debates, sharing your insights, and shaping the conversation.</p>
+                        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                            <a class="btn btn-warning btn-lg px-4 me-sm-3" href="#debates">Explore Debates</a>
+                            <a class="btn btn-outline-dark btn-lg px-4" href="#community">Join Community</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Personalized Section-->
+    <section class="py-5 border-bottom" id="your-debates">
+        <div class="container px-5 my-5">
+            <div class="text-center mb-5">
+                <h2 class="fw-bolder">Your Recent Debates</h2>
+                <p class="lead mb-0">Continue where you left off or start something new!</p>
+                <br>
+                <a class="btn btn-warning btn-lg px-4 me-sm-3" href="#debates">Manage Debates</a>
+            </div>
+            <div class="row gx-5">
+                <div class="col-lg-4 mb-5">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Should AI regulate content online?</h5>
+                            <p class="card-text">Explore the ethical implications and practicalities of AI content moderation.</p>
+                            <a href="#" class="btn btn-warning">Continue Debate</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-5">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Is climate change activism effective?</h5>
+                            <p class="card-text">Discuss the strategies and impacts of global climate change movements.</p>
+                            <a href="#" class="btn btn-warning">Continue Debate</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-5">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Do we need more space exploration?</h5>
+                            <p class="card-text">Weigh in on the importance of space exploration versus other priorities.</p>
+                            <a href="#" class="btn btn-warning">Continue Debate</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Footer-->
+    <footer class="py-5 bg-light">
+        <div class="container px-5">
+            <p class="m-0 text-center">Copyright &copy; Dabaat 2024</p>
+        </div>
+    </footer>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="js/scripts.js"></script>
+    <script src="./js/home.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const usernameElement = document.getElementById("username");
+
+            // Simulated example: Retrieve username from local storage or API
+            const username = localStorage.getItem("username") || "John Doe";
+            usernameElement.textContent = username;
+        });
+    </script>
+</body>
+</html>
