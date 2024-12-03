@@ -4,12 +4,12 @@ const db = require('../database').db;
 
 // Create a new debate
 router.post('/', async (req, res) => {
-    const { topic_id, title, created_by } = req.body;
+    const { title, description, created_by } = req.body;
 
     try {
         const [result] = await db.query(
-            `INSERT INTO debates (topic_id, title, created_by) VALUES (?, ?, ?)`,
-            [topic_id, title, created_by]
+            `INSERT INTO debates (title, description, created_by) VALUES (?, ?, ?)`,
+            [title, created_by]
         );
         res.status(201).json({ message: 'Debate created successfully!', debateId: result.insertId });
     } catch (error) {

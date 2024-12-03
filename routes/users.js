@@ -27,4 +27,30 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get user details
+router.get('/details', async (req, res) => {
+    const userId = req.user?.id || req.query.id; // Extract user ID from token or query
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    try {
+        const [users] = await db.query(
+            `SELECT id, username, email, first_name, last_name, date_of_birth, role, is_banned 
+             FROM users 
+             WHERE id = ?`,
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(users[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

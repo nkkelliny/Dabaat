@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { router: authRoutes, checkBlacklist } = require('./routes/auth');
 const cors = require('cors');
+const path = require('path'); // For resolving file paths
 const { createTables, db, close } = require('./database'); // Assuming database.js is the file with table creation logic
 require('dotenv').config();
 
@@ -13,6 +14,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Serve Static Files
+app.use(express.static(path.join(__dirname, 'public'))); // Assumes HTML files are in a folder named "public"
+
 // Initialize Database Tables
 (async () => {
     try {
@@ -23,11 +27,48 @@ app.use(bodyParser.urlencoded({ extended: true }));
     }
 })();
 
-// Routes
+// Routes for HTML Files
 app.get('/', (req, res) => {
-    res.send('Welcome to Dabaat - Social Debating Platform API');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/signup.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+app.get('/forgotpassword.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'forgotpassword.html'));
+});
+
+app.get('/resetpassword.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'resetpassword.html'));
+});
+
+app.get('/debate.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'debate.html'));
+});
+
+app.get('/manage.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'manage.html'));
+});
+
+app.get('/profile.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
+app.get('/settings.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+});
+
+app.get('/home.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
+
+// API Routes
 app.use('/api/auth', authRoutes);
 
 // Apply middleware for secure routes

@@ -78,11 +78,11 @@ router.post('/register', async (req, res) => {
 
 // Login Route
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
         // Check if user exists
-        const [users] = await db.query(`SELECT * FROM users WHERE email = ?`, [email]);
+        const [users] = await db.query(`SELECT * FROM users WHERE username = ?`, [username]);
         if (users.length === 0) {
             return res.status(404).json({ error: 'User not found' });
         }

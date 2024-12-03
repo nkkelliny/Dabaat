@@ -26,14 +26,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ email: username, password }), // Use username as email for simplicity
+                    body: JSON.stringify({ username: username, password }), // Use username as email for simplicity
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     alert("Login successful!");
                     localStorage.setItem("token", data.token); // Store the JWT token
-                    window.location.href = "index.html"; // Redirect to the dashboard
+                    window.location.href = "home.html"; // Redirect to the dashboard
                 } else {
                     const errorData = await response.json();
                     alert(`Login failed: ${errorData.error || "Invalid credentials."}`);
