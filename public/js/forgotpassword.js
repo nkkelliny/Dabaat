@@ -20,7 +20,7 @@
 
             // Send forgot password request to the backend
             try {
-                const response = await fetch("http://localhost:3000/api/auth/forgot-password", {
+                const response = await fetch("http://localhost:3000/api/auth/forgotpassword", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

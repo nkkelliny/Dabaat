@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Send reset password request to the backend
             try {
-                const response = await fetch("http://localhost:3000/api/auth/reset-password", {
+                const response = await fetch("http://localhost:3000/api/auth/resetpassword", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

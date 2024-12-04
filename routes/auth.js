@@ -63,11 +63,33 @@ router.post('/register', async (req, res) => {
             [username, email, hashedPassword, first_name, last_name, date_of_birth]
         );
 
+http://localhost:3000/assets/dabaat_logo.png
         // Send a welcome email
         await sendEmail(
             email,
-            'Welcome to Dabaat!',
-            `<h1>Welcome, ${username}!</h1><p>Thank you for joining Dabaat. Let's start debating!</p>`
+            'Welcome to Dabaat - Your Debating Journey Begins!',
+            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border: 1px solid #eaeaea; border-radius: 10px;">
+                <div style="text-align: center;">
+                    <img src="https://example.com/dabaat-logo.png" alt="Dabaat Logo" style="width: 150px; margin-bottom: 20px;" />
+                </div>
+                <h1 style="text-align: center; color: #333;">Welcome, ${username}!</h1>
+                <p style="text-align: center; color: #555; font-size: 16px;">
+                    Thank you for joining <strong>Dabaat</strong>, the ultimate platform for meaningful debates and idea exchange!
+                </p>
+                <p style="text-align: center; color: #555; font-size: 16px;">
+                    Get started by exploring debates, sharing your opinions, and making your voice heard.
+                </p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="https://dabaat.com/login" style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #ff6f00; text-decoration: none; border-radius: 5px; font-size: 16px;">Start Debating</a>
+                </div>
+                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eaeaea;" />
+                <p style="text-align: center; color: #888; font-size: 14px;">
+                    Need help? Visit our <a href="https://dabaat.com/support" style="color: #ff6f00; text-decoration: none;">Support Center</a>.
+                </p>
+                <p style="text-align: center; color: #888; font-size: 14px;">
+                    &copy; ${new Date().getFullYear()} Dabaat. All rights reserved.
+                </p>
+            </div>`
         );
 
         res.status(201).json({ message: 'User registered successfully!' });
@@ -107,7 +129,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Forgot Password Route
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgotpassword', async (req, res) => {
     const { email } = req.body;
 
     try {
@@ -131,11 +153,32 @@ router.post('/forgot-password', async (req, res) => {
         ]);
 
         // Send reset email
-        const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+        const resetUrl = `http://localhost:3000/resetpassword?token=${resetToken}`;
         await sendEmail(
             email,
             'Password Reset Request',
-            `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`
+            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border: 1px solid #eaeaea; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://example.com/dabaat-logo.png" alt="Dabaat Logo" style="width: 150px;" />
+            </div>
+            <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
+            <p style="color: #555; font-size: 16px; text-align: center;">
+                You requested to reset your password for your Dabaat account. Click the button below to reset it.
+                <br />This link will expire in <strong>1 hour</strong>.
+            </p>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #ff6f00; color: #fff; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                    Reset Password
+                </a>
+            </div>
+            <p style="color: #555; font-size: 14px; text-align: center; margin-top: 20px;">
+                If you didn't request a password reset, please ignore this email or contact our support if you have any concerns.
+            </p>
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eaeaea;" />
+            <p style="color: #888; font-size: 14px; text-align: center;">
+                &copy; ${new Date().getFullYear()} Dabaat. All rights reserved.
+            </p>
+            </div>`
         );
 
         res.status(200).json({ message: 'Password reset email sent' });
