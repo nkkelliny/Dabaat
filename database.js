@@ -31,6 +31,7 @@ async function createTables() {
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             description TEXT NOT NULL,
+            category TEXT NOT NULL,
             created_by INT NOT NULL,
             is_flagged BOOLEAN DEFAULT FALSE,
             flag_reason TEXT,

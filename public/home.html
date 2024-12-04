@@ -57,23 +57,26 @@
         .action-buttons a {
             margin-right: 10px;
         }
-        .trending-topics h4 {
+        .category-filter h4 {
             font-weight: bold;
             margin-bottom: 15px;
         }
-        .trending-topics ul {
+        .category-filter ul {
             padding-left: 0;
             list-style-type: none;
         }
-        .trending-topics li {
+        .category-filter li {
             margin-bottom: 10px;
         }
-        .trending-topics a {
+        .category-filter a {
             text-decoration: none;
-            color: #007bff;
+            color: #f05403; /* Green links */
         }
-        .trending-topics a:hover {
+        .category-filter a:hover {
             text-decoration: underline;
+        }
+        .search-bar {
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -107,30 +110,29 @@
     </nav>
     <!-- Feed Layout -->
     <div class="container px-5 mt-4">
+        <button class="btn btn-warning"><a style="color: white; text-decoration: none;" href="/manage"><i class="bi bi-plus"></i> Start a Debate</a></button>
+        <br>
+        <br>
+        <div class="search-bar">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search debates..." />
+        </div>
         <div class="feed-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="category-filter">
+                    <h4>Filter by Category</h4>
+                    <ul>
+                        <li><a href="#" data-category="All">All</a></li>
+                        <li><a href="#" data-category="AI">Artificial Intelligence</a></li>
+                        <li><a href="#" data-category="Environment">Environment</a></li>
+                        <li><a href="#" data-category="Space">Outer Space</a></li>
+                        <li><a href="#" data-category="Politics">Politics</a></li>
+                    </ul>
+                </div>
+            </aside>
             <!-- Main Feed -->
-            <div class="feed">
-                <div class="card">
-                    <h5 class="card-title">Should AI regulate content online?</h5>
-                    <p class="card-text">Explore the ethical implications and practicalities of AI content moderation.</p>
-                    <div class="action-buttons">
-                        <a href="debate.html" class="btn btn-warning btn-sm">Join Debate</a>
-                    </div>
-                </div>
-                <div class="card">
-                    <h5 class="card-title">Is climate change activism effective?</h5>
-                    <p class="card-text">Discuss the strategies and impacts of global climate change movements.</p>
-                    <div class="action-buttons">
-                        <a href="debate.html" class="btn btn-warning btn-sm">Join Debate</a>
-                    </div>
-                </div>
-                <div class="card">
-                    <h5 class="card-title">Do we need more space exploration?</h5>
-                    <p class="card-text">Weigh in on the importance of space exploration versus other priorities.</p>
-                    <div class="action-buttons">
-                        <a href="debate.html" class="btn btn-warning btn-sm">Join Debate</a>
-                    </div>
-                </div>
+            <div class="feed" id="debatesFeed">
+                <!-- Dynamic content will be loaded here -->
             </div>
         </div>
     </div>
@@ -147,6 +149,80 @@
             const usernameElement = document.getElementById("username");
             const username = localStorage.getItem("username") || "John Doe";
             usernameElement.textContent = username;
+
+            const debatesFeed = document.getElementById("debatesFeed");
+            const searchInput = document.getElementById("searchInput");
+            const categoryLinks = document.querySelectorAll(".category-filter a");
+
+            let debates = [];
+            let currentPage = 1;
+            const pageSize = 5;
+
+            // Fetch debates (mock API call)
+            const fetchDebates = async (page = 1) => {
+                const response = await fetch(`/api/debates?page=${page}&size=${pageSize}`);
+                const data = await response.json();
+                return data;
+            };
+
+            // Render debates
+            const renderDebates = (debates) => {
+                debates.forEach((debate) => {
+                    const card = document.createElement("div");
+                    card.classList.add("card");
+                    card.dataset.category = debate.category;
+                    card.innerHTML = `
+                        <h5 class="card-title">${debate.title}</h5>
+                        <p class="card-text">${debate.description}</p>
+                        <div class="action-buttons">
+                            <a href="/debate/${debate.id}" class="btn btn-warning btn-sm">Join Debate</a>
+                        </div>
+                    `;
+                    debatesFeed.appendChild(card);
+                });
+            };
+
+            // Initial load
+            const loadInitialDebates = async () => {
+                const initialDebates = await fetchDebates(currentPage);
+                debates = [...debates, ...initialDebates];
+                renderDebates(initialDebates);
+            };
+
+            loadInitialDebates();
+
+            // Infinite scrolling
+            window.addEventListener("scroll", async () => {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+                    currentPage++;
+                    const newDebates = await fetchDebates(currentPage);
+                    debates = [...debates, ...newDebates];
+                    renderDebates(newDebates);
+                }
+            });
+
+            // Search functionality
+            searchInput.addEventListener("input", () => {
+                const searchText = searchInput.value.toLowerCase();
+                document.querySelectorAll(".card").forEach((card) => {
+                    const title = card.querySelector(".card-title").textContent.toLowerCase();
+                    card.style.display = title.includes(searchText) ? "block" : "none";
+                });
+            });
+
+            // Filter by category
+            categoryLinks.forEach((link) => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const category = e.target.dataset.category;
+                    document.querySelectorAll(".card").forEach((card) => {
+                        card.style.display =
+                            category === "All" || card.dataset.category === category
+                                ? "block"
+                                : "none";
+                    });
+                });
+            });
         });
     </script>
 </body>
