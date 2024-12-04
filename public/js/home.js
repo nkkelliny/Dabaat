@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } catch (error) {
                 console.error("Error fetching user details:", error);
                 alert("Failed to load user details. Please log in again.");
-                window.location.href = "login.html";
+                window.location.href = "/login";
             }
         }
 
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Logout functionality
         document.querySelector(".dropdown-item[href='logout.html']").addEventListener("click", () => {
             localStorage.removeItem("token"); // Clear token
-            window.location.href = "login.html"; // Redirect to login
+            window.location.href = "/login"; // Redirect to login
         });
 
         // Initialize the page by fetching user details and recent debates

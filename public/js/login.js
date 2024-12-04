@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const data = await response.json();
                     alert("Login successful!");
                     localStorage.setItem("token", data.token); // Store the JWT token
-                    window.location.href = "home.html"; // Redirect to the dashboard
+                    window.location.href = "/home"; // Redirect to the dashboard
                 } else {
                     const errorData = await response.json();
                     alert(`Login failed: ${errorData.error || "Invalid credentials."}`);

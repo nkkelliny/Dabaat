@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 } catch (error) {
                     console.error("Error fetching profile:", error);
                     alert("Failed to load profile. Please log in again.");
-                    window.location.href = "login.html";
+                    window.location.href = "/login";
                 }
             }
 

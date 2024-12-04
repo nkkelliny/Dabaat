@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (response.ok) {
                     alert("Account created successfully! Redirecting to login...");
-                    window.location.href = "login.html"; // Redirect to login page
+                    window.location.href = "/login"; // Redirect to login page
                 } else {
                     const data = await response.json();
                     alert(`Error: ${data.error || "An unexpected error occurred."}`);
