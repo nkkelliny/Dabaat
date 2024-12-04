@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Fetch user profile
             async function fetchUserProfile() {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/user/profile`, {
+                    const response = await fetch(`${API_BASE_URL}/users/profile`, {
                         method: "GET",
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/user/profile`, {
+                    const response = await fetch(`${API_BASE_URL}/users/profile`, {
                         method: "PUT",
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("token")}`,
