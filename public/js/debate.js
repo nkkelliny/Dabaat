@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
             const API_BASE_URL = "http://localhost:3000/api";
-            const debateId = new URLSearchParams(window.location.search).get("id");
+            const urlPath = window.location.pathname; // Get the path, e.g., "/debate/3"
+            const debateId = urlPath.split('/').pop(); // Split by "/" and get the last part
+            console.log("DEBATE ID: " + debateId);
 
             const debateTitleElement = document.getElementById("debate-title");
             const debateDescriptionElement = document.getElementById("debate-description");
