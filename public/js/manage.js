@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const debateForm = document.getElementById("debate-form");
     const debateModalLabel = document.getElementById("debateModalLabel");
     const debateTitleInput = document.getElementById("debate-title");
+    const debateCatInput = document.getElementById("debate-category");
     const debateDescriptionInput = document.getElementById("debate-description");
     const debateIdInput = document.getElementById("debate-id");
     const debateModal = new bootstrap.Modal(document.getElementById("debateModal"));
@@ -41,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <div class="card shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title">${debate.title}</h5>
+                            <small class="card-text">${debate.category}</small>
                             <p class="card-text">${debate.description}</p>
                             <p class="text-muted">
                                 Topic: ${debate.topic_title || "General"}<br>
@@ -68,6 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     createDebateButton.addEventListener("click", () => {
         debateModalLabel.textContent = "Create Debate";
         debateTitleInput.value = "";
+        debateCatInput.value = "";
         debateDescriptionInput.value = "";
         debateIdInput.value = "";
         debateModal.show();
@@ -87,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             .then((debate) => {
                 debateModalLabel.textContent = "Edit Debate";
                 debateTitleInput.value = debate.title;
+                debateCatInput.value = debate.category;
                 debateDescriptionInput.value = debate.description;
                 debateIdInput.value = debate.id;
                 debateModal.show();
@@ -125,6 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const debateData = {
             title: debateTitleInput.value.trim(),
+            category: debateCatInput.value.trim(),
             description: debateDescriptionInput.value.trim(),
             created_by: localStorage.getItem("userId"), // Assuming userId is stored in localStorage
         };

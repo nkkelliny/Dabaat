@@ -52,6 +52,10 @@ app.get('/debate', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'debate.html'));
 });
 
+app.get('/debate/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'debate.html'));
+});
+
 app.get('/manage', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'manage.html'));
 });

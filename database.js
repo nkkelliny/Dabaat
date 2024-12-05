@@ -26,32 +26,17 @@ async function createTables() {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )`;
 
-    const createTopicsTable = `
-        CREATE TABLE IF NOT EXISTS topics (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(255) NOT NULL,
-            description TEXT NOT NULL,
-            category TEXT NOT NULL,
-            created_by INT NOT NULL,
-            is_flagged BOOLEAN DEFAULT FALSE,
-            flag_reason TEXT,
-            flagged_at DATETIME,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-        )`;
-
     const createDebatesTable = `
         CREATE TABLE IF NOT EXISTS debates (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            topic_id INT NOT NULL,
             title VARCHAR(255) NOT NULL,
+            category TEXT NOT NULL,
+            description VARCHAR(255) NOT NULL,
             created_by INT NOT NULL,
             status ENUM('open', 'closed') DEFAULT 'open',
             winner_id INT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
             FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (winner_id) REFERENCES users(id)
         )`;
@@ -83,7 +68,6 @@ async function createTables() {
             id INT AUTO_INCREMENT PRIMARY KEY,
             content TEXT NOT NULL,
             debate_id INT,
-            topic_id INT,
             user_id INT NOT NULL,
             is_flagged BOOLEAN DEFAULT FALSE,
             flag_reason TEXT,
@@ -91,7 +75,6 @@ async function createTables() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE,
-            FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )`;
 
@@ -99,14 +82,12 @@ async function createTables() {
         CREATE TABLE IF NOT EXISTS flags (
             id INT AUTO_INCREMENT PRIMARY KEY,
             flagged_by INT NOT NULL,
-            topic_id INT,
             comment_id INT,
             reason TEXT NOT NULL,
             status ENUM('pending', 'reviewed', 'resolved') DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (flagged_by) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
             FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
         )`;
 
@@ -115,7 +96,6 @@ async function createTables() {
             id INT AUTO_INCREMENT PRIMARY KEY,
             submitted_by INT NOT NULL,
             against_user INT,
-            topic_id INT,
             comment_id INT,
             description TEXT NOT NULL,
             status ENUM('pending', 'reviewed', 'resolved') DEFAULT 'pending',
@@ -123,7 +103,6 @@ async function createTables() {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (submitted_by) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (against_user) REFERENCES users(id),
-            FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
             FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
         )`;
 
@@ -147,7 +126,6 @@ async function createTables() {
     )`;
 
     await db.query(createUsersTable);
-    await db.query(createTopicsTable);
     await db.query(createDebatesTable);
     await db.query(createParticipantsTable);
     await db.query(createVotesTable);
