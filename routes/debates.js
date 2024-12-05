@@ -6,8 +6,6 @@ const db = require('../database').db;
 router.post('/', async (req, res) => {
     const { title, category, description, created_by } = req.body;
 
-    console.log("CREATED BY:  " + created_by);
-
     try {
         const [result] = await db.query(
             `INSERT INTO debates (title, category, description, created_by) VALUES (?, ?, ?, ?)`,
@@ -33,7 +31,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-
 // Get a debate by ID
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
@@ -52,6 +49,67 @@ router.get('/:id', async (req, res) => {
         }
 
         res.status(200).json(debates[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get debates by UserID
+router.get('/user/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [debates] = await db.query(
+            `SELECT d.*, u.username AS created_by_user
+            FROM debates d
+            JOIN users u ON d.created_by = u.id
+            WHERE u.id = ?`,
+            [id]
+        );
+
+        if (debates.length === 0) {
+            return res.status(404).json({ error: 'No debates found for this user.' });
+        }
+
+        res.status(200).json(debates);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update a debate
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, category, description } = req.body;
+
+    try {
+        const [result] = await db.query(
+            `UPDATE debates SET title = ?, category = ?, description = ? WHERE id = ?`,
+            [title, category, description, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Debate not found.' });
+        }
+
+        res.status(200).json({ message: 'Debate updated successfully!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete a debate
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [result] = await db.query(`DELETE FROM debates WHERE id = ?`, [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Debate not found.' });
+        }
+
+        res.status(200).json({ message: 'Debate deleted successfully!' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

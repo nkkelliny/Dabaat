@@ -10,11 +10,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const debateDescriptionInput = document.getElementById("debate-description");
     const debateIdInput = document.getElementById("debate-id");
     const debateModal = new bootstrap.Modal(document.getElementById("debateModal"));
+    const userId = localStorage.getItem('userId');
 
     // Fetch debates
     async function fetchDebates() {
         try {
-            const response = await fetch(`${API_BASE_URL}/debates`, {
+            const response = await fetch(`${API_BASE_URL}/debates/user/${userId}`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -25,6 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!response.ok) throw new Error("Failed to fetch debates.");
 
             const debates = await response.json();
+            console.log("DEBATES: " + JSON.stringify(debates));
             renderDebates(debates);
         } catch (error) {
             console.error("Error fetching debates:", error);
