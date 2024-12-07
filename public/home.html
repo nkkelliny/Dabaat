@@ -124,6 +124,7 @@
                         <li><a href="#" data-category="All">All</a></li>
                         <li><a href="#" data-category="AI">Artificial Intelligence</a></li>
                         <li><a href="#" data-category="Tech">Technology</a></li>
+                        <li><a href="#" data-category="Education">Education</a></li>
                         <li><a href="#" data-category="Sports">Sports</a></li>
                         <li><a href="#" data-category="Finance">Finance</a></li>
                         <li><a href="#" data-category="Science">Science</a></li>
@@ -154,89 +155,118 @@
     </div>
     <!-- Footer-->
     <footer class="py-5 bg-light">
-        <div class="container px-5">
-            <p class="m-0 text-center">Copyright &copy; Dabaat 2024</p>
-        </div>
-    </footer>
+    <div class="container px-5">
+        <p class="m-0 text-center">&copy; Dabaat <span id="year"></span></p>
+    </div>
+</footer>
+
+<script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+</script>
     <!-- Bootstrap core JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+    const debatesFeed = document.getElementById("debatesFeed");
+    const searchInput = document.getElementById("searchInput");
+    const categoryLinks = document.querySelectorAll(".category-filter a");
 
-            const debatesFeed = document.getElementById("debatesFeed");
-            const searchInput = document.getElementById("searchInput");
-            const categoryLinks = document.querySelectorAll(".category-filter a");
+    let debates = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let isLoading = false;   // Prevent multiple simultaneous fetch requests
+    const pageSize = 5;
 
-            let debates = [];
-            let currentPage = 1;
-            const pageSize = 5;
+    // Fetch debates function (page-based pagination)
+    const fetchDebates = async () => {
+        if (isLoading || currentPage > totalPages) return;
+        isLoading = true;
 
-            // Fetch debates (mock API call)
-            const fetchDebates = async (page = 1) => {
-                const response = await fetch(`/api/debates?page=${page}&size=${pageSize}`);
-                const data = await response.json();
-                return data;
-            };
+        try {
+            const url = `/api/debates?page=${currentPage}&size=${pageSize}`;
+            const response = await fetch(url);
 
-            // Render debates
-            const renderDebates = (debates) => {
-                debates.forEach((debate) => {
-                    const card = document.createElement("div");
-                    card.classList.add("card");
-                    card.dataset.category = debate.category;
-                    card.innerHTML = `
-                        <h5 class="card-title">${debate.title}</h5>
-                        <p class="card-text">${debate.description}</p>
-                        <div class="action-buttons">
-                            <a href="/debate/${debate.id}" class="btn btn-warning btn-sm">Join Debate</a>
-                        </div>
-                    `;
-                    debatesFeed.appendChild(card);
-                });
-            };
+            if (!response.ok) throw new Error("Failed to fetch debates.");
 
-            // Initial load
-            const loadInitialDebates = async () => {
-                const initialDebates = await fetchDebates(currentPage);
-                debates = [...debates, ...initialDebates];
-                renderDebates(initialDebates);
-            };
+            const data = await response.json();
 
-            loadInitialDebates();
+            if (data.data.length > 0) {
+                totalPages = data.pagination.totalPages;
+                debates = [...debates, ...data.data];
+                renderDebates(data.data);
+                currentPage++;
+            } else {
+                showNoMoreDebatesMessage();
+            }
+        } catch (error) {
+            console.error("Error fetching debates:", error);
+        } finally {
+            isLoading = false;
+        }
+    };
 
-            // Infinite scrolling
-            window.addEventListener("scroll", async () => {
-                if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-                    currentPage++;
-                    const newDebates = await fetchDebates(currentPage);
-                    debates = [...debates, ...newDebates];
-                    renderDebates(newDebates);
-                }
-            });
+    // Render debates
+    const renderDebates = (debatesBatch) => {
+        debatesBatch.forEach((debate) => {
+            if (document.querySelector(`[data-id='${debate.id}']`)) return; // Avoid duplicates
 
-            // Search functionality
-            searchInput.addEventListener("input", () => {
-                const searchText = searchInput.value.toLowerCase();
-                document.querySelectorAll(".card").forEach((card) => {
-                    const title = card.querySelector(".card-title").textContent.toLowerCase();
-                    card.style.display = title.includes(searchText) ? "block" : "none";
-                });
-            });
+            const card = document.createElement("div");
+            card.classList.add("card", "mb-3");
+            card.dataset.id = debate.id;
+            card.dataset.category = debate.category;
+            card.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${debate.title}</h5>
+                    <p class="card-text">${debate.description}</p>
+                    <div class="action-buttons">
+                        <a href="/debate/${debate.id}" class="btn btn-warning btn-sm">Join Debate</a>
+                    </div>
+                </div>
+            `;
+            debatesFeed.appendChild(card);
+        });
+    };
 
-            // Filter by category
-            categoryLinks.forEach((link) => {
-                link.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    const category = e.target.dataset.category;
-                    document.querySelectorAll(".card").forEach((card) => {
-                        card.style.display =
-                            category === "All" || card.dataset.category === category
-                                ? "block"
-                                : "none";
-                    });
-                });
+    // Show message when no more debates are available
+    const showNoMoreDebatesMessage = () => {
+        const message = document.createElement("p");
+        message.className = "text-center text-muted mt-3";
+        message.textContent = "No more debates to load.";
+        debatesFeed.appendChild(message);
+    };
+
+    // Initial load
+    fetchDebates();
+
+    // Infinite scrolling
+    window.addEventListener("scroll", async () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+            await fetchDebates();
+        }
+    });
+
+    // Search functionality
+    searchInput.addEventListener("input", () => {
+        const searchText = searchInput.value.toLowerCase();
+        document.querySelectorAll(".card").forEach((card) => {
+            const title = card.querySelector(".card-title").textContent.toLowerCase();
+            card.style.display = title.includes(searchText) ? "block" : "none";
+        });
+    });
+
+    // Filter by category
+    categoryLinks.forEach((link) => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const category = e.target.dataset.category;
+            document.querySelectorAll(".card").forEach((card) => {
+                card.style.display =
+                    category === "All" || card.dataset.category === category ? "block" : "none";
             });
         });
+    });
+});
+
     </script>
     <script src="js/home.js"></script>
 </body>

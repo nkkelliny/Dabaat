@@ -72,6 +72,14 @@ app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
 
+app.get('/tos', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tos.html'));
+});
+
+app.get('/privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 
@@ -94,6 +102,9 @@ app.use('/api/comments', require('./routes/comments'));
 
 // Flags Routes
 app.use('/api/flags', require('./routes/flags'));
+
+// Contact Routes
+app.use('/api/contact', require('./routes/contact'));
 
 // Complaints Routes
 app.use('/api/complaints', require('./routes/complaints'));

@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all debates
-router.get('/', async (req, res) => {
+/*router.get('/', async (req, res) => {
     try {
         const [debates] = await db.query(
             `SELECT d.*, u.username AS created_by_user
@@ -31,6 +31,69 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+*/
+
+// Get debates with pagination (supports cursor-based and offset-based pagination)
+router.get('/', async (req, res) => {
+    // Extract query parameters for pagination
+    let { page = 1, size = 5, lastLoadedId } = req.query;
+
+    // Convert page and size to integers and set defaults if invalid
+    page = parseInt(page) || 1;
+    size = parseInt(size) || 5;
+
+    try {
+        let debatesQuery;
+        let queryParams = [];
+
+        if (lastLoadedId) {
+            // Cursor-based pagination
+            debatesQuery = `
+                SELECT id, title, category, description, created_by, created_at
+                FROM debates
+                WHERE id < ?
+                ORDER BY id DESC
+                LIMIT ?`;
+            queryParams = [lastLoadedId, size];
+        } else {
+            // Offset-based pagination
+            const offset = (page - 1) * size;
+            debatesQuery = `
+                SELECT id, title, category, description, created_by, created_at
+                FROM debates
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?`;
+            queryParams = [size, offset];
+        }
+
+        // Query to get debates with pagination
+        const [debates] = await db.query(debatesQuery, queryParams);
+
+        // Query to get the total count of debates (for offset-based pagination)
+        let total = null;
+        if (!lastLoadedId) {
+            const [countResult] = await db.query(`SELECT COUNT(*) AS total FROM debates`);
+            total = countResult[0].total;
+        }
+
+        // Return debates and pagination info
+        res.status(200).json({
+            data: debates,
+            pagination: lastLoadedId
+                ? { hasMore: debates.length === size }
+                : {
+                      currentPage: page,
+                      pageSize: size,
+                      totalItems: total,
+                      totalPages: Math.ceil(total / size),
+                  },
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 
 // Get a debate by ID
 router.get('/:id', async (req, res) => {
