@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
             JOIN users u ON d.created_by = u.id`
         );
         res.status(200).json(debates);
+        console.log("DEBATES: " + JSON.stringify(debates))
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -37,7 +38,7 @@ router.get('/:id', async (req, res) => {
 
     try {
         const [debates] = await db.query(
-            `SELECT d.*, u.username AS created_by_user
+            `SELECT d.*, u.username AS created_by_user, u.email AS creator_email
             FROM debates d
             JOIN users u ON d.created_by = u.id
             WHERE d.id = ?`,
@@ -49,6 +50,7 @@ router.get('/:id', async (req, res) => {
         }
 
         res.status(200).json(debates[0]);
+        console.log("DEBATE: " + JSON.stringify(debates[0]))
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -73,6 +75,60 @@ router.get('/:id/votes', async (req, res) => {
     }
 });
 
+// Get votes for a debate and the user's specific vote
+router.get('/:id/votes/:userId', async (req, res) => {
+    const { id, userId } = req.params;
+
+    try {
+        // Get total pro and con votes for the debate
+        const [totalVotes] = await db.query(
+            `SELECT 
+                SUM(CASE WHEN vote_type = 'pro' THEN 1 ELSE 0 END) AS pro_votes,
+                SUM(CASE WHEN vote_type = 'con' THEN 1 ELSE 0 END) AS con_votes
+            FROM votes WHERE debate_id = ?`,
+            [id]
+        );
+
+        // Get the user's specific vote type (if any)
+        const [userVote] = await db.query(
+            `SELECT vote_type FROM votes WHERE debate_id = ? AND user_id = ? LIMIT 1`,
+            [id, userId]
+        );
+
+        res.status(200).json({
+            pro_votes: totalVotes[0].pro_votes || 0,
+            con_votes: totalVotes[0].con_votes || 0,
+            user_vote: userVote.length > 0 ? userVote[0].vote_type : null
+        });
+
+        console.log("Total Votes: ", totalVotes[0]);
+        console.log("User Vote: ", userVote.length > 0 ? userVote[0].vote_type : "No vote");
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete a user's vote for a debate
+router.delete('/:id/vote/:userId', async (req, res) => {
+    const { id, userId } = req.params;
+
+    try {
+        const [result] = await db.query(
+            `DELETE FROM votes WHERE debate_id = ? AND user_id = ?`,
+            [id, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Vote not found.' });
+        }
+
+        res.status(200).json({ message: 'Vote deleted successfully!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 // Add a vote to a debate
 router.post('/:id/vote', async (req, res) => {
     const { id } = req.params;
@@ -95,7 +151,7 @@ router.get('/:id/comments', async (req, res) => {
 
     try {
         const [comments] = await db.query(
-            `SELECT c.*, u.username AS commenter
+            `SELECT c.*, u.username AS commenter, u.email AS email
             FROM comments c
             JOIN users u ON c.user_id = u.id
             WHERE c.debate_id = ?`,

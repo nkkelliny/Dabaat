@@ -1,119 +1,140 @@
 document.addEventListener("DOMContentLoaded", async () => {
-            const API_BASE_URL = "http://localhost:3000/api";
+    const API_BASE_URL = "http://localhost:3000/api";
 
-            const emailInput = document.getElementById("email");
-            const passwordInput = document.getElementById("password");
-            const accountForm = document.getElementById("account-form");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const accountForm = document.getElementById("account-form");
 
-            const mfaEnabledSwitch = document.getElementById("mfa-enabled");
-            const mfaSetupSection = document.getElementById("mfa-setup");
-            const mfaQrCode = document.getElementById("mfa-qr-code");
-            const mfaCodeInput = document.getElementById("mfa-code");
-            const verifyMfaButton = document.getElementById("verify-mfa");
+    const mfaEnabledSwitch = document.getElementById("mfa-enabled");
+    const mfaSetupSection = document.getElementById("mfa-setup");
+    const mfaQrCode = document.getElementById("mfa-qr-code");
+    const mfaCodeInput = document.getElementById("mfa-code");
+    const verifyMfaButton = document.getElementById("verify-mfa");
 
-            // Fetch account settings
-            async function fetchSettings() {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/user/settings`, {
-                        method: "GET",
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            "Content-Type": "application/json",
-                        },
-                    });
+    const userId = localStorage.getItem("userId");
 
-                    if (!response.ok) throw new Error("Failed to fetch settings.");
+    // Fetch account settings
+    async function fetchSettings() {
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/settings?userId=${userId}`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+            });
 
-                    const settings = await response.json();
-                    emailInput.value = settings.email || "";
-                    mfaEnabledSwitch.checked = settings.mfa_enabled;
-                } catch (error) {
-                    console.error("Error fetching settings:", error);
-                    alert("Failed to load settings. Please try again later.");
-                }
+            if (!response.ok) throw new Error("Failed to fetch settings.");
+
+            const settings = await response.json();
+            emailInput.value = settings.email || "";
+            mfaEnabledSwitch.checked = settings.mfa_enabled;
+        } catch (error) {
+            console.error("Error fetching settings:", error);
+            alert("Failed to load settings. Please try again later.");
+        }
+    }
+
+    // Update account information
+    accountForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/settings?userId=${userId}`, {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId: localStorage.getItem("userId"), email, password }),
+            });
+
+            if (!response.ok) throw new Error("Failed to update account information.");
+
+            alert("Account information updated successfully.");
+        } catch (error) {
+            console.error("Error updating account:", error);
+            alert("Failed to update account information. Please try again.");
+        }
+    });
+
+    // Enable MFA and display QR code for setup
+    mfaEnabledSwitch.addEventListener("change", async () => {
+        if (mfaEnabledSwitch.checked) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/settings/mfa/enable?userId=${userId}`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({ userId: localStorage.getItem("userId")})
+                });
+
+                if (!response.ok) throw new Error("Failed to set up MFA.");
+
+                const { qrCodeUrl } = await response.json();
+                mfaQrCode.src = qrCodeUrl;
+                mfaSetupSection.style.display = "block";
+            } catch (error) {
+                console.error("Error enabling MFA:", error);
+                alert("Failed to enable MFA. Please try again.");
+                mfaEnabledSwitch.checked = false;
             }
+        } else {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/settings/mfa/disable?userId=${userId}`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({ userId: localStorage.getItem("userId")})
 
-            // Update account information
-            accountForm.addEventListener("submit", async (event) => {
-                event.preventDefault();
+                });
 
-                const email = emailInput.value.trim();
-                const password = passwordInput.value.trim();
+                if (!response.ok) throw new Error("Failed to disable MFA.");
 
-                try {
-                    const response = await fetch(`${API_BASE_URL}/user/settings`, {
-                        method: "PUT",
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ email, password }),
-                    });
+                alert("MFA disabled successfully.");
+                mfaSetupSection.style.display = "none";
+            } catch (error) {
+                console.error("Error disabling MFA:", error);
+                alert("Failed to disable MFA. Please try again.");
+                mfaEnabledSwitch.checked = true;
+            }
+        }
+    });
 
-                    if (!response.ok) throw new Error("Failed to update account information.");
+    // Verify MFA code
+    verifyMfaButton.addEventListener("click", async () => {
+        const code = mfaCodeInput.value.trim();
 
-                    alert("Account information updated successfully.");
-                } catch (error) {
-                    console.error("Error updating account:", error);
-                    alert("Failed to update account information. Please try again.");
-                }
+        if (!code) {
+            return alert("Please enter the code from your authenticator app.");
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/settings/mfa/verify?userId=${userId}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId: localStorage.getItem("userId"), token: code }),
             });
 
-            // Enable/Disable MFA
-            mfaEnabledSwitch.addEventListener("change", async () => {
-                const enabled = mfaEnabledSwitch.checked;
+            if (!response.ok) throw new Error("Failed to verify MFA.");
 
-                if (enabled) {
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/user/mfa/setup`, {
-                            method: "POST",
-                            headers: {
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            },
-                        });
+            alert("MFA setup verified successfully.");
+            mfaSetupSection.style.display = "none";
+        } catch (error) {
+            console.error("Error verifying MFA:", error);
+            alert("Failed to verify MFA. Please try again.");
+        }
+    });
 
-                        if (!response.ok) throw new Error("Failed to set up MFA.");
-
-                        const { qr_code_url } = await response.json();
-                        mfaQrCode.src = qr_code_url;
-                        mfaSetupSection.style.display = "block";
-                    } catch (error) {
-                        console.error("Error enabling MFA:", error);
-                        alert("Failed to enable MFA. Please try again.");
-                    }
-                } else {
-                    mfaSetupSection.style.display = "none";
-                }
-            });
-
-            // Verify MFA
-            verifyMfaButton.addEventListener("click", async () => {
-                const code = mfaCodeInput.value.trim();
-
-                if (!code) {
-                    return alert("Please enter the code from your authenticator app.");
-                }
-
-                try {
-                    const response = await fetch(`${API_BASE_URL}/user/mfa/verify`, {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ code }),
-                    });
-
-                    if (!response.ok) throw new Error("Failed to verify MFA.");
-
-                    alert("MFA setup verified successfully.");
-                    mfaSetupSection.style.display = "none";
-                } catch (error) {
-                    console.error("Error verifying MFA:", error);
-                    alert("Failed to verify MFA. Please try again.");
-                }
-            });
-
-            // Initialize settings page
-            await fetchSettings();
-        });
+    // Initialize settings page
+    await fetchSettings();
+});

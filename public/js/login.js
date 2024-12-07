@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // Send login request to the backend
         try {
+            // Send login request to the backend
             const response = await fetch("http://localhost:3000/api/auth/login", {
                 method: "POST",
                 headers: {
@@ -29,27 +29,78 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({ username, password }),
             });
 
-            if (response.ok) {
-                const data = await response.json();
+            const data = await response.json();
 
-                // Save token and user ID to localStorage
-                const { token } = data;
-                const userId = parseJwt(token).id;
-
-                localStorage.setItem("token", token);
-                localStorage.setItem("userId", userId);
-
-                alert("Login successful!");
-                window.location.href = "/home"; // Redirect to the dashboard
+            if (response.ok && data.tempToken) {
+                // MFA required: Prompt for MFA code
+                const mfaCode = prompt("Enter your MFA code:");
+                if (mfaCode) {
+                    await loginWithMfa(data.tempToken, mfaCode);
+                } else {
+                    alert("MFA code is required to complete login.");
+                }
+            } else if (response.ok) {
+                // Successful login without MFA
+                handleSuccessfulLogin(data.token);
             } else {
-                const errorData = await response.json();
-                alert(`Login failed: ${errorData.error || "Invalid credentials."}`);
+                throw new Error(data.error || "Invalid credentials.");
             }
         } catch (error) {
             console.error("Error during login:", error);
-            alert("Failed to login. Please try again later.");
+            alert(`Login failed: ${error.message}`);
         }
     });
+
+    // Function to handle MFA verification
+    async function loginWithMfa(tempToken, mfaCode) {
+
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        // Validate inputs
+        if (!username) {
+            alert("Please enter your username.");
+            return;
+        }
+        if (!password) {
+            alert("Please enter your password.");
+            return;
+        }
+
+
+        try {
+            const response = await fetch("http://localhost:3000/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${tempToken}`,
+                },
+                body: JSON.stringify({ username, password, mfa_code: mfaCode }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                handleSuccessfulLogin(data.token);
+            } else {
+                throw new Error(data.error || "MFA verification failed.");
+            }
+        } catch (error) {
+            console.error("Error during MFA verification:", error);
+            alert(`MFA verification failed: ${error.message}`);
+        }
+    }
+
+    // Function to handle successful login
+    function handleSuccessfulLogin(token) {
+        const userId = parseJwt(token).id;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("userId", userId);
+
+        alert("Login successful!");
+        window.location.href = "/home"; // Redirect to the dashboard
+    }
 
     // Helper function to parse JWT and extract payload
     function parseJwt(token) {

@@ -100,7 +100,7 @@ http://localhost:3000/assets/dabaat_logo.png
 
 // Login Route
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, mfa_code } = req.body; // Accept MFA code if provided
 
     try {
         // Check if user exists
@@ -117,6 +117,27 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
+        // Check if MFA is enabled for the user
+        if (user.mfa_enabled) {
+            if (!mfa_code) {
+                // Return a temporary token and prompt for MFA code
+                const tempToken = jwt.sign({ id: user.id, mfa: true }, config.security.jwtSecret, {
+                    expiresIn: '10m',
+                });
+
+                return res.status(200).json({
+                    message: 'MFA required',
+                    tempToken,
+                });
+            }
+
+            // Verify the provided MFA code
+            const isMfaValid = verifyMfaCode(user.mfa_secret, mfa_code); // Assume verifyMfaCode is a function to validate MFA code
+            if (!isMfaValid) {
+                return res.status(401).json({ error: 'Invalid MFA code' });
+            }
+        }
+
         // Generate JWT
         const token = jwt.sign({ id: user.id, role: user.role }, config.security.jwtSecret, {
             expiresIn: process.env.JWT_EXPIRATION || '1h',
@@ -127,6 +148,18 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Function to verify the MFA code
+const speakeasy = require('speakeasy'); // Install speakeasy: npm install speakeasy
+function verifyMfaCode(secret, token) {
+    return speakeasy.totp.verify({
+        secret,
+        encoding: 'base32',
+        token,
+        window: 1, // Allow a window of 1 time step for clock drift
+    });
+}
+
 
 // Forgot Password Route
 router.post('/forgotpassword', async (req, res) => {
@@ -188,7 +221,7 @@ router.post('/forgotpassword', async (req, res) => {
 });
 
 // Reset Password Route
-router.post('/reset-password', async (req, res) => {
+router.post('/resetpassword', async (req, res) => {
     const { token, newPassword } = req.body;
 
     try {
