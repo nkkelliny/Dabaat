@@ -5,78 +5,68 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Base API URL
         const API_BASE_URL = "http://localhost:3000/api";
 
-        // Retrieve and display user details
-        async function fetchUserDetails() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/user/details`, {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming JWT is stored
-                        "Content-Type": "application/json",
-                    },
-                });
+        const username = document.getElementById("username");
+    const dropdownPictureElement = document.getElementById("dropdown-picture");
 
-                if (!response.ok) {
-                    throw new Error("Failed to fetch user details.");
-                }
 
-                const userData = await response.json();
-                usernameElement.textContent = userData.username;
-            } catch (error) {
-                console.error("Error fetching user details:", error);
-                alert("Failed to load user details. Please log in again.");
-                window.location.href = "/login";
-            }
+    const userId = localStorage.getItem("userId");
+
+    // Function to generate Gravatar URL
+    function getGravatarUrl(email, size = 150) {
+        const hash = md5(email.trim().toLowerCase());
+        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+    }
+
+    // Function to load MD5 hashing library
+    function loadMd5Library() {
+        return new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js";
+            script.onload = resolve;
+            document.body.appendChild(script);
+        });
+    }
+
+    // Initialize profile
+    await loadMd5Library();
+
+    // Fetch user profile
+    async function fetchUserProfile() {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+            alert("User ID not found. Please log in again.");
+            window.location.href = "/login";
+            return;
         }
 
-        // Retrieve and display recent debates
-        async function fetchRecentDebates() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/debates/recent`, {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                        "Content-Type": "application/json",
-                    },
-                });
+        try {
+            const response = await fetch(`${API_BASE_URL}/users/profile?userId=${userId}`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json",
+                },
+            });
 
-                if (!response.ok) {
-                    throw new Error("Failed to fetch recent debates.");
-                }
+            if (!response.ok) throw new Error("Failed to fetch user profile.");
 
-                const debates = await response.json();
-
-                // Clear the existing debates
-                recentDebatesSection.innerHTML = "";
-
-                // Populate debates
-                debates.forEach((debate) => {
-                    const debateCard = `
-                        <div class="col-lg-4 mb-5">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">${debate.title}</h5>
-                                    <p class="card-text">${debate.description}</p>
-                                    <a href="/debates/${debate.id}" class="btn btn-warning">Continue Debate</a>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    recentDebatesSection.insertAdjacentHTML("beforeend", debateCard);
-                });
-            } catch (error) {
-                console.error("Error fetching recent debates:", error);
-                recentDebatesSection.innerHTML = "<p class='text-center'>Failed to load debates.</p>";
-            }
+            const profile = await response.json();
+            
+            username.textContent = profile.username;
+            dropdownPictureElement.src = getGravatarUrl(profile.email);
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+            alert("Failed to load profile. Please log in again.");
+            window.location.href = "/login";
         }
+    }
 
         // Logout functionality
-        document.querySelector(".dropdown-item[href='logout.html']").addEventListener("click", () => {
+        document.querySelector(".dropdown-item[href='/']").addEventListener("click", () => {
             localStorage.removeItem("token"); // Clear token
+            localStorage.removeItem("userId"); // Clear token
             window.location.href = "/login"; // Redirect to login
         });
 
-        // Initialize the page by fetching user details and recent debates
-        await fetchUserDetails();
-        await fetchRecentDebates();
+        await fetchUserProfile();
     });

@@ -63,7 +63,6 @@ router.post('/register', async (req, res) => {
             [username, email, hashedPassword, first_name, last_name, date_of_birth]
         );
 
-http://localhost:3000/assets/dabaat_logo.png
         // Send a welcome email
         await sendEmail(
             email,

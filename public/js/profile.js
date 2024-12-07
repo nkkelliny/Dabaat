@@ -2,11 +2,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const API_BASE_URL = "http://localhost:3000/api";
 
     const profilePictureElement = document.getElementById("profile-picture");
+    const dropdownPictureElement = document.getElementById("dropdown-picture");
     const profileUsernameElement = document.getElementById("profile-username");
     const firstNameInput = document.getElementById("first-name");
     const lastNameInput = document.getElementById("last-name");
     const emailInput = document.getElementById("email");
     const profileForm = document.getElementById("profile-form");
+    const username = document.getElementById("username");
 
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
@@ -39,7 +41,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             firstNameInput.value = profile.first_name || "";
             lastNameInput.value = profile.last_name || "";
             emailInput.value = profile.email || "";
-
+            username.textContent = profile.username;
+            dropdownPictureElement.src = getGravatarUrl(profile.email);
             // Set the Gravatar profile picture
             profilePictureElement.src = getGravatarUrl(profile.email);
         } catch (error) {
@@ -95,6 +98,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.body.appendChild(script);
         });
     }
+
+    // Logout functionality
+        document.querySelector(".dropdown-item[href='/']").addEventListener("click", () => {
+            localStorage.removeItem("token"); // Clear token
+            localStorage.removeItem("userId"); // Clear token
+            window.location.href = "/login"; // Redirect to login
+        });
 
     // Initialize profile
     await loadMd5Library();

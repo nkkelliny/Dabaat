@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const confirmPasswordInput = document.querySelector("#exampleRepeatPassword");
         const termsCheckbox = document.querySelector("#customCheck");
 
-        const MIN_AGE = 13;
+        const MIN_AGE = 18;
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault(); // Prevent form submission
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Age validation
             const userAge = calculateAge(new Date(dateOfBirth));
             if (userAge < MIN_AGE) {
-                alert("You must be at least 13 years old to create an account.");
+                alert("You must be at least 18 years old to create an account.");
                 return;
             }
 

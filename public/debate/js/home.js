@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         // Logout functionality
-        document.querySelector(".dropdown-item[href='logout.html']").addEventListener("click", () => {
+        document.querySelector(".dropdown-item[href='/']").addEventListener("click", () => {
             localStorage.removeItem("token"); // Clear token
             window.location.href = "/login"; // Redirect to login
         });

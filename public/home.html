@@ -88,14 +88,13 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="/home">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="/home">Debates</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#community">Community</a></li>
                     <li class="nav-item"><a class="nav-link" target="_blank" href="/#contact">Contact</a></li>
                     <!-- User Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> <span id="username">User</span>
+                            <img id="dropdown-picture" src="assets/default-profile.png" alt="Profile Picture" class="mb-3" width="20" height="20"> <span id="username">User</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="/profile">Profile</a></li>
@@ -163,9 +162,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const usernameElement = document.getElementById("username");
-            const username = localStorage.getItem("username") || "John Doe";
-            usernameElement.textContent = username;
 
             const debatesFeed = document.getElementById("debatesFeed");
             const searchInput = document.getElementById("searchInput");
@@ -242,5 +238,6 @@
             });
         });
     </script>
+    <script src="js/home.js"></script>
 </body>
 </html>

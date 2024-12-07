@@ -4,6 +4,7 @@ const db = require('../database').db;
 const bcrypt = require('bcrypt');
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
+const { sendEmail } = require('../email');
 
 // Middleware for authentication (placeholder)
 const authenticate = (req, res, next) => {
@@ -194,7 +195,12 @@ router.post('/settings/mfa/enable', authenticate, async (req, res) => {
     const userId = req.query.userId;
 
     try {
-        const secret = speakeasy.generateSecret({ length: 20 });
+        // Generate a secret with the label "Dabaat" for the issuer name
+        const secret = speakeasy.generateSecret({
+            length: 20,
+            name: `Dabaat`,
+        });
+
         const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
 
         // Save the secret in the database temporarily
@@ -248,4 +254,61 @@ router.post('/settings/mfa/disable', authenticate, async (req, res) => {
     }
 });
 
+// Delete user account and associated data
+router.delete('/delete', authenticate, async (req, res) => {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required for account deletion.' });
+    }
+
+    try {
+        // Fetch the user's email and username before deletion
+        const [userResult] = await db.query(`SELECT email, username FROM users WHERE id = ?`, [userId]);
+
+        if (userResult.length === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const { email, username } = userResult[0];
+
+        // Delete user's votes
+        await db.query(`DELETE FROM votes WHERE user_id = ?`, [userId]);
+
+        // Delete user's comments
+        await db.query(`DELETE FROM comments WHERE user_id = ?`, [userId]);
+
+        // Delete user's debates
+        await db.query(`DELETE FROM debates WHERE created_by = ?`, [userId]);
+
+        // Delete the user account
+        await db.query(`DELETE FROM users WHERE id = ?`, [userId]);
+
+        // Send the account deletion email
+        await sendEmail(
+            email,
+            'Account Deletion Confirmation',
+            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border: 1px solid #eaeaea; border-radius: 10px;">
+                <h2 style="color: #ff6f00; text-align: center;">Account Deleted</h2>
+                <p style="color: #555; font-size: 16px; text-align: center;">
+                    Hello <strong>${username}</strong>,
+                </p>
+                <p style="color: #555; font-size: 16px; text-align: center;">
+                    Your account has been successfully deleted. We're sorry to see you go!
+                </p>
+                <p style="color: #555; font-size: 16px; text-align: center;">
+                    If this was a mistake or you wish to return, please contact our support team.
+                </p>
+                <p style="color: #888; font-size: 14px; text-align: center; margin-top: 20px;">
+                    &copy; ${new Date().getFullYear()} Dabaat. All rights reserved.
+                </p>
+            </div>`
+        );
+
+        res.status(200).json({ message: 'User account and associated data deleted successfully!' });
+    } catch (error) {
+        console.error("Error deleting account:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 module.exports = router;
