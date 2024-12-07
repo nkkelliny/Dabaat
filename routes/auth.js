@@ -99,7 +99,7 @@ router.post('/register', async (req, res) => {
 
 // Login Route
 router.post('/login', async (req, res) => {
-    const { username, password, mfa_code } = req.body; // Accept MFA code if provided
+    const { username, password, mfa_code, remember_me } = req.body; // Accept remember_me flag
 
     try {
         // Check if user exists
@@ -137,9 +137,12 @@ router.post('/login', async (req, res) => {
             }
         }
 
+        // Determine token expiration based on the "Remember Me" option
+        const tokenExpiration = remember_me ? '30d' : process.env.JWT_EXPIRATION || '1h';
+
         // Generate JWT
         const token = jwt.sign({ id: user.id, role: user.role }, config.security.jwtSecret, {
-            expiresIn: process.env.JWT_EXPIRATION || '1h',
+            expiresIn: tokenExpiration,
         });
 
         res.status(200).json({ message: 'Login successful', token });
@@ -147,6 +150,7 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 // Function to verify the MFA code
 const speakeasy = require('speakeasy'); // Install speakeasy: npm install speakeasy

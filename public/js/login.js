@@ -2,12 +2,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector(".user");
     const usernameInput = document.querySelector("#exampleInputUsername");
     const passwordInput = document.querySelector("#exampleInputPassword");
+    const rememberMeCheckbox = document.querySelector("#rememberMe"); // Remember Me checkbox
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault(); // Prevent form from reloading the page
 
         const username = usernameInput.value.trim();
         const password = passwordInput.value.trim();
+        const rememberMe = rememberMeCheckbox.checked;
 
         // Validate inputs
         if (!username) {
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, password, remember_me: rememberMe }),
             });
 
             const data = await response.json();
@@ -75,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${tempToken}`,
                 },
-                body: JSON.stringify({ username, password, mfa_code: mfaCode }),
+                body: JSON.stringify({ username, password, mfa_code: mfaCode, remember_me: rememberMe }),
             });
 
             const data = await response.json();
