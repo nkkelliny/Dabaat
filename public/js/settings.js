@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
-        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+        return `https://www.gravatar.com/avatar/${hash}`;
     }
 
     // Function to load MD5 hashing library

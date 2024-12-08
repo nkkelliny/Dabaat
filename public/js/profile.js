@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const username = document.getElementById("username");
 
     let userId = '';
+    let userEmail = '';
 
     async function decryptData(encryptedData) {
     try {
@@ -40,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
-        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+        return `https://www.gravatar.com/avatar/${hash}`;
     }
 
     // Fetch user profile
@@ -64,6 +65,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             lastNameInput.value = profile.last_name || "";
             emailInput.value = profile.email || "";
             username.textContent = profile.username;
+
+            userEmail = profile.email;
+
             dropdownPictureElement.src = getGravatarUrl(profile.email);
             // Set the Gravatar profile picture
             profilePictureElement.src = getGravatarUrl(profile.email);

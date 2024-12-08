@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
-        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+        return `https://www.gravatar.com/avatar/${hash}`;
     }
 
     // Function to load MD5 hashing library
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Display the creator's username and Gravatar
             creatorUsernameElement.textContent = debate.created_by_user;
             const gravatarHash = md5(debate.creator_email.trim().toLowerCase());
-            creatorGravatarElement.src = `https://www.gravatar.com/avatar/${gravatarHash}?s=60&d=identicon`;
+            creatorGravatarElement.src = `https://www.gravatar.com/avatar/${gravatarHash}`;
 
             await fetchVotes();
         } catch (error) {
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const gravatarHash = md5(comment.email.trim().toLowerCase());
                 const commentElement = `
                     <div class="comment d-flex align-items-start mb-3">
-                        <img src="https://www.gravatar.com/avatar/${gravatarHash}?s=50&d=identicon" alt="User Gravatar" class="me-3 rounded-circle">
+                        <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
                         <div>
                             <strong>${comment.commenter}</strong>
                             <p>${comment.content}</p>
