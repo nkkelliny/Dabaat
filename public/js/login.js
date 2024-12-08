@@ -94,31 +94,52 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Function to handle successful login
-    function handleSuccessfulLogin(token) {
-        const userId = parseJwt(token).id;
+async function handleSuccessfulLogin(token) {
+    const userId = parseJwt(token).id;
 
-        localStorage.setItem("token", token);
-        localStorage.setItem("userId", userId);
+    try {
+        // Encrypt the userId using the encryptData function
+        const response = await fetch('http://localhost:3000/api/encrypt/encrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: userId }),
+        });
 
-        alert("Login successful!");
-        window.location.href = "/home"; // Redirect to the dashboard
-    }
-
-    // Helper function to parse JWT and extract payload
-    function parseJwt(token) {
-        try {
-            const base64Url = token.split(".")[1];
-            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split("")
-                    .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join("")
-            );
-            return JSON.parse(jsonPayload);
-        } catch (error) {
-            console.error("Failed to parse token:", error);
-            return {};
+        if (!response.ok) {
+            throw new Error('Failed to encrypt user ID.');
         }
+
+        const result = await response.json();
+        const encryptedUserId = result.encryptedData;
+
+        // Store the token and encrypted user ID in localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('userId', encryptedUserId);
+
+        alert('Login successful!');
+        window.location.href = '/home'; // Redirect to the dashboard
+    } catch (error) {
+        console.error('Error during encryption:', error);
+        alert('Failed to encrypt user ID. Please try again.');
     }
+}
+
+// Helper function to parse JWT and extract payload
+function parseJwt(token) {
+    try {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split("")
+                .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+        );
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error("Failed to parse token:", error);
+        return {};
+    }
+}
+
 });

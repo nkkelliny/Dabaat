@@ -13,6 +13,7 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="css/styles.css" rel="stylesheet" />
     <link href="css/main.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body {
             background-color: #f7f9fc;
@@ -109,7 +110,7 @@
     </nav>
     <!-- Feed Layout -->
     <div class="container px-5 mt-4">
-        <button class="btn btn-warning"><a style="color: white; text-decoration: none;" href="/manage"><i class="bi bi-pencil-square"></i> Manage Debates</a></button>
+        <button class="btn btn-warning"><a style="color: white; text-decoration: none;" href="/manage"><i class="bi bi-pencil-square"></i> Manage Your Debates</a></button>
         <br>
         <br>
         <div class="search-bar">
@@ -171,6 +172,25 @@
     const searchInput = document.getElementById("searchInput");
     const categoryLinks = document.querySelectorAll(".category-filter a");
 
+    // Function to generate Gravatar URL
+    function getGravatarUrl(email, size = 150) {
+        const hash = md5(email.trim().toLowerCase());
+        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+    }
+
+    // Function to load MD5 hashing library
+    function loadMd5Library() {
+        return new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js";
+            script.onload = resolve;
+            document.body.appendChild(script);
+        });
+    }
+
+    // Initialize profile
+    loadMd5Library();
+
     let debates = [];
     let currentPage = 1;
     let totalPages = 1;
@@ -214,10 +234,16 @@
             card.classList.add("card", "mb-3");
             card.dataset.id = debate.id;
             card.dataset.category = debate.category;
+            const gravatarHash = md5(debate.email.trim().toLowerCase());
             card.innerHTML = `
                 <div class="card-body">
                     <h5 class="card-title">${debate.title}</h5>
                     <p class="card-text">${debate.description}</p>
+                    <p class="card-text">Category: ${debate.category}</p>
+                    <span>Poster: </span>&nbsp;
+                    <img src="https://www.gravatar.com/avatar/${gravatarHash}?s=50&d=identicon" alt="User Gravatar" class="me-3 rounded-circle" height="20px"><span>${debate.created_by_user}</span>
+                    <br>
+                    <small class="text-muted">${new Date(debate.created_at).toLocaleString()}</small>
                     <div class="action-buttons">
                         <a href="/debate/${debate.id}" class="btn btn-warning btn-sm">Join Debate</a>
                     </div>
@@ -245,26 +271,86 @@
         }
     });
 
-    // Search functionality
-    searchInput.addEventListener("input", () => {
-        const searchText = searchInput.value.toLowerCase();
-        document.querySelectorAll(".card").forEach((card) => {
-            const title = card.querySelector(".card-title").textContent.toLowerCase();
-            card.style.display = title.includes(searchText) ? "block" : "none";
-        });
-    });
+    //Search functionality
+    searchInput.addEventListener("input", async () => {
+    const searchText = searchInput.value.trim().toLowerCase();
 
-    // Filter by category
+    if (searchText.length === 0) {
+        // If search input is empty, reload initial debates
+        debatesFeed.innerHTML = "";
+        lastLoadedId = null;
+        await fetchDebates();
+        return;
+    }
+
+    try {
+        // Fetch debates from the search endpoint with the keyword
+        const response = await fetch(`/api/debates/search?keyword=${encodeURIComponent(searchText)}`);
+        if (!response.ok) throw new Error("Failed to fetch search results.");
+
+        const debates = await response.json();
+
+        // Clear the current debates feed
+        debatesFeed.innerHTML = "";
+
+        if (debates.length === 0) {
+            debatesFeed.innerHTML = `<p class="text-center text-muted mt-3">No debates found for "${searchText}".</p>`;
+            return;
+        }
+
+        // Render the search results
+        renderDebates(debates);
+    } catch (error) {
+        console.error("Error fetching search results:", error);
+        debatesFeed.innerHTML = `<p class="text-center text-danger mt-3">Error fetching search results. Please try again.</p>`;
+    }
+});
+
+
     categoryLinks.forEach((link) => {
-        link.addEventListener("click", (e) => {
-            e.preventDefault();
-            const category = e.target.dataset.category;
-            document.querySelectorAll(".card").forEach((card) => {
-                card.style.display =
-                    category === "All" || card.dataset.category === category ? "block" : "none";
-            });
-        });
+    link.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const category = e.target.dataset.category;
+
+        // Highlight the active category link
+        categoryLinks.forEach((l) => l.classList.remove("active"));
+        e.target.classList.add("active");
+
+        // Clear the current debates feed
+        debatesFeed.innerHTML = "";
+
+        try {
+            let url = `/api/debates?size=${pageSize}`;
+            if (category !== "All") {
+                url += `&category=${encodeURIComponent(category)}`;
+            }
+            else if(category == "All"){
+                window.location.reload();
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch debates by category.");
+
+            const data = await response.json();
+            const { data: debatesBatch } = data;
+
+            if (debatesBatch.length === 0) {
+                debatesFeed.innerHTML = `<p class="text-center text-muted mt-3">No debates found for "${category}".</p>`;
+                return;
+            }
+
+            // Render the fetched debates
+            renderDebates(debatesBatch);
+
+            // Reset the lastLoadedId for pagination
+            lastLoadedId = debatesBatch.length > 0 ? debatesBatch[debatesBatch.length - 1].id : null;
+        } catch (error) {
+            console.error("Error fetching debates by category:", error);
+            debatesFeed.innerHTML = `<p class="text-center text-danger mt-3">Error fetching debates. Please try again.</p>`;
+        }
     });
+});
+
 });
 
     </script>

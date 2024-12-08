@@ -10,6 +10,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profileForm = document.getElementById("profile-form");
     const username = document.getElementById("username");
 
+    let userId = '';
+
+    async function decryptData(encryptedData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encryptedData }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to decrypt data.');
+        }
+
+        const result = await response.json();
+        console.log('Decrypted Data:', result.decryptedData);
+        userId = result.decryptedData;
+        return result.decryptedData;
+    } catch (error) {
+        console.error('Error during decryption:', error);
+        return null;
+    }
+}
+
+
+    await decryptData(localStorage.getItem("userId"));
+
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
@@ -18,12 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch user profile
     async function fetchUserProfile() {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            alert("User ID not found. Please log in again.");
-            window.location.href = "/login";
-            return;
-        }
+       
 
         try {
             const response = await fetch(`${API_BASE_URL}/users/profile?userId=${userId}`, {
@@ -55,13 +77,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Update user profile
     profileForm.addEventListener("submit", async (event) => {
         event.preventDefault();
-
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            alert("User ID not found. Please log in again.");
-            window.location.href = "/login";
-            return;
-        }
 
         const updatedProfile = {
             first_name: firstNameInput.value.trim(),

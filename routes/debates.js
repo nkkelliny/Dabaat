@@ -17,26 +17,50 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Get all debates
-/*router.get('/', async (req, res) => {
+// Search debates with optional filters
+router.get('/search', async (req, res) => {
     try {
-        const [debates] = await db.query(
-            `SELECT d.*, u.username AS created_by_user
+        const { keyword = '', category = '' } = req.query;
+
+        // Construct SQL query with filters
+        let query = `
+            SELECT d.*, u.username AS created_by_user, u.email AS email
             FROM debates d
-            JOIN users u ON d.created_by = u.id`
-        );
+            JOIN users u ON d.created_by = u.id
+            WHERE 1=1
+        `;
+
+        const params = [];
+
+        // Add keyword search filter (searches in title and description)
+        if (keyword) {
+            query += ` AND (d.title LIKE ? OR d.description LIKE ?)`;
+            params.push(`%${keyword}%`, `%${keyword}%`);
+        }
+
+        // Add category filter
+        if (category) {
+            query += ` AND d.category = ?`;
+            params.push(category);
+        }
+
+        query += ` ORDER BY d.created_at DESC`;
+
+        // Execute the query
+        const [debates] = await db.query(query, params);
+
         res.status(200).json(debates);
-        console.log("DEBATES: " + JSON.stringify(debates))
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
-*/
+
+
 
 // Get debates with pagination (supports cursor-based and offset-based pagination)
 router.get('/', async (req, res) => {
-    // Extract query parameters for pagination
-    let { page = 1, size = 5, lastLoadedId } = req.query;
+    // Extract query parameters for pagination and filtering
+    let { page = 1, size = 5, lastLoadedId, category } = req.query;
 
     // Convert page and size to integers and set defaults if invalid
     page = parseInt(page) || 1;
@@ -46,33 +70,48 @@ router.get('/', async (req, res) => {
         let debatesQuery;
         let queryParams = [];
 
-        if (lastLoadedId) {
-            // Cursor-based pagination
-            debatesQuery = `
-                SELECT id, title, category, description, created_by, created_at
-                FROM debates
-                WHERE id < ?
-                ORDER BY id DESC
-                LIMIT ?`;
-            queryParams = [lastLoadedId, size];
-        } else {
-            // Offset-based pagination
-            const offset = (page - 1) * size;
-            debatesQuery = `
-                SELECT id, title, category, description, created_by, created_at
-                FROM debates
-                ORDER BY id DESC
-                LIMIT ? OFFSET ?`;
-            queryParams = [size, offset];
+        // Base query with optional category filtering
+        let baseQuery = `SELECT d.*, u.username AS created_by_user, u.email AS email FROM debates d
+        JOIN users u ON d.created_by = u.id`;
+        let whereClauses = [];
+
+        if (category) {
+            whereClauses.push(`category = ?`);
+            queryParams.push(category);
         }
 
-        // Query to get debates with pagination
+        if (lastLoadedId) {
+            // Cursor-based pagination with optional category filter
+            whereClauses.push(`id < ?`);
+            queryParams.push(lastLoadedId);
+            debatesQuery = `
+                ${baseQuery}
+                ${whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : ''}
+                ORDER BY id DESC
+                LIMIT ?`;
+            queryParams.push(size);
+        } else {
+            // Offset-based pagination with optional category filter
+            const offset = (page - 1) * size;
+            debatesQuery = `
+                ${baseQuery}
+                ${whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : ''}
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?`;
+            queryParams.push(size, offset);
+        }
+
+        // Execute the debates query
         const [debates] = await db.query(debatesQuery, queryParams);
 
         // Query to get the total count of debates (for offset-based pagination)
         let total = null;
         if (!lastLoadedId) {
-            const [countResult] = await db.query(`SELECT COUNT(*) AS total FROM debates`);
+            let countQuery = `SELECT COUNT(*) AS total FROM debates`;
+            if (category) {
+                countQuery += ` WHERE category = ?`;
+            }
+            const [countResult] = await db.query(countQuery, category ? [category] : []);
             total = countResult[0].total;
         }
 
@@ -92,6 +131,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 
 
 

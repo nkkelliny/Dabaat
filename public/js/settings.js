@@ -18,8 +18,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     const dropdownPictureElement = document.getElementById("dropdown-picture");
 
 
-    const userId = localStorage.getItem("userId");
+    let userId = '';
 
+    async function decryptData(encryptedData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encryptedData }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to decrypt data.');
+        }
+
+        const result = await response.json();
+        console.log('Decrypted Data:', result.decryptedData);
+        userId = result.decryptedData;
+        return result.decryptedData;
+    } catch (error) {
+        console.error('Error during decryption:', error);
+        return null;
+    }
+}
+
+
+    await decryptData(localStorage.getItem("userId"));
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
@@ -41,12 +65,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch user profile
     async function fetchUserProfile() {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            alert("User ID not found. Please log in again.");
-            window.location.href = "/login";
-            return;
-        }
 
         try {
             const response = await fetch(`${API_BASE_URL}/users/profile?userId=${userId}`, {
@@ -138,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ userId: localStorage.getItem("userId"), email, password }),
+                body: JSON.stringify({ userId: userId, email, password }),
             });
 
             if (!response.ok) throw new Error("Failed to update account information.");
@@ -159,7 +177,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
-                    body: JSON.stringify({ userId: localStorage.getItem("userId")})
+                    body: JSON.stringify({ userId: userId})
                 });
 
                 if (!response.ok) throw new Error("Failed to set up MFA.");
@@ -179,7 +197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
-                    body: JSON.stringify({ userId: localStorage.getItem("userId")})
+                    body: JSON.stringify({ userId: userId})
 
                 });
 
@@ -210,7 +228,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ userId: localStorage.getItem("userId"), token: code }),
+                body: JSON.stringify({ userId: userId, token: code }),
             });
 
             if (!response.ok) throw new Error("Failed to verify MFA.");

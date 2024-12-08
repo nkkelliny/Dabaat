@@ -106,6 +106,9 @@ app.use('/api/flags', require('./routes/flags'));
 // Contact Routes
 app.use('/api/contact', require('./routes/contact'));
 
+// Encrypt/Decrypt Routes
+app.use('/api/encrypt', require('./routes/encrypt'));
+
 // Complaints Routes
 app.use('/api/complaints', require('./routes/complaints'));
 

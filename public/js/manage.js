@@ -10,10 +10,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     const debateDescriptionInput = document.getElementById("debate-description");
     const debateIdInput = document.getElementById("debate-id");
     const debateModal = new bootstrap.Modal(document.getElementById("debateModal"));
-    const userId = localStorage.getItem('userId');
 
     const username = document.getElementById("username");
     const dropdownPictureElement = document.getElementById("dropdown-picture");
+
+    let userId = '';
+
+    async function decryptData(encryptedData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encryptedData }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to decrypt data.');
+        }
+
+        const result = await response.json();
+        console.log('Decrypted Data:', result.decryptedData);
+        userId = result.decryptedData;
+        return result.decryptedData;
+    } catch (error) {
+        console.error('Error during decryption:', error);
+        return null;
+    }
+}
+
+
+    await decryptData(localStorage.getItem("userId"));
 
 
     // Function to generate Gravatar URL
@@ -37,13 +63,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch user profile
     async function fetchUserProfile() {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            alert("User ID not found. Please log in again.");
-            window.location.href = "/login";
-            return;
-        }
-
         try {
             const response = await fetch(`${API_BASE_URL}/users/profile?userId=${userId}`, {
                 method: "GET",
@@ -189,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             title: debateTitleInput.value.trim(),
             category: debateCatInput.value.trim(),
             description: debateDescriptionInput.value.trim(),
-            created_by: localStorage.getItem("userId"), // Assuming userId is stored in localStorage
+            created_by: userId, // Assuming userId is stored in localStorage
         };
 
         const debateId = debateIdInput.value;
