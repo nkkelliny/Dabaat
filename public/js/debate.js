@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const API_BASE_URL = "http://localhost:3000/api";
-    const urlPath = window.location.pathname; // Get the path, e.g., "/debate/3"
-    const debateId = urlPath.split("/").pop(); // Split by "/" and get the last part
+    const urlPath = window.location.pathname;
+    const debateId = urlPath.split("/").pop();
     console.log("DEBATE ID: " + debateId);
 
     const debateTitleElement = document.getElementById("debate-title");
@@ -17,16 +17,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     const proVotesCountElement = document.getElementById("pro-votes-count");
     const conVotesCountElement = document.getElementById("con-votes-count");
 
+    let userVote = null;
+
     const username = document.getElementById("username");
     const dropdownPictureElement = document.getElementById("dropdown-picture");
 
 
-    const userId = localStorage.getItem("userId");
+    let userId = '';
+
+    async function decryptData(encryptedData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ encryptedData }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to decrypt data.');
+        }
+
+        const result = await response.json();
+        console.log('Decrypted Data:', result.decryptedData);
+        userId = result.decryptedData;
+        return result.decryptedData;
+    } catch (error) {
+        console.error('Error during decryption:', error);
+        return null;
+    }
+}
+
+
+    await decryptData(localStorage.getItem("userId"));
 
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
-        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+        return `https://www.gravatar.com/avatar/${hash}`;
     }
 
     // Function to load MD5 hashing library
@@ -44,12 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch user profile
     async function fetchUserProfile() {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            alert("User ID not found. Please log in again.");
-            window.location.href = "/login";
-            return;
-        }
+        
 
         try {
             const response = await fetch(`${API_BASE_URL}/users/profile?userId=${userId}`, {
@@ -84,15 +106,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const debate = await response.json();
             debateTitleElement.textContent = debate.title;
             debateDescriptionElement.textContent = debate.description;
-            
+
             // Display the creator's username and Gravatar
             creatorUsernameElement.textContent = debate.created_by_user;
             const gravatarHash = md5(debate.creator_email.trim().toLowerCase());
-            creatorGravatarElement.src = `https://www.gravatar.com/avatar/${gravatarHash}?s=60&d=identicon`;
+            creatorGravatarElement.src = `https://www.gravatar.com/avatar/${gravatarHash}`;
 
-            // Update vote counts
-            proVotesCountElement.textContent = debate.pro_votes || 0;
-            conVotesCountElement.textContent = debate.con_votes || 0;
+            await fetchVotes();
         } catch (error) {
             debateTitleElement.textContent = "Error Loading Debate";
             debateDescriptionElement.textContent = error.message;
@@ -111,12 +131,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             comments.forEach((comment) => {
                 const gravatarHash = md5(comment.email.trim().toLowerCase());
                 const commentElement = `
-                    <div class="comment">
-                        <img src="https://www.gravatar.com/avatar/${gravatarHash}?s=50&d=identicon" alt="User Gravatar">
+                    <div class="comment d-flex align-items-start mb-3">
+                        <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
                         <div>
-                            <strong>${comment.username}</strong>
-                            <p>${comment.text}</p>
-                            <hr>
+                            <strong>${comment.commenter}</strong>
+                            <p>${comment.content}</p>
+                            <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
                         </div>
                     </div>
                 `;
@@ -124,6 +144,27 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         } catch (error) {
             commentsContainer.innerHTML = `<p class="text-muted">${error.message}</p>`;
+        }
+    }
+
+    // Fetch votes
+    async function fetchVotes() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/votes/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            if (!response.ok) throw new Error("Failed to fetch votes.");
+
+            const votes = await response.json();
+            proVotesCountElement.textContent = votes.pro_votes || 0;
+            conVotesCountElement.textContent = votes.con_votes || 0;
+            userVote = votes.user_vote;
+            console.log("USER VOTE: " + userVote);
+        } catch (error) {
+            console.error("Error fetching votes:", error.message);
+            userVote = null;
         }
     }
 
@@ -139,7 +180,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-                body: JSON.stringify({ text: commentText }),
+                body: JSON.stringify({ user_id: userId, text: commentText }),
             });
 
             if (!response.ok) throw new Error("Failed to submit comment.");
@@ -152,23 +193,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Handle voting
-    voteProButton.addEventListener("click", async () => vote("pro"));
-    voteConButton.addEventListener("click", async () => vote("con"));
+    voteProButton.addEventListener("click", async () => handleVote("pro"));
+    voteConButton.addEventListener("click", async () => handleVote("con"));
 
-    async function vote(type) {
+    async function handleVote(type) {
+
         try {
+            // Delete the user's current vote if it exists
+            if (userVote) {
+                await fetch(`${API_BASE_URL}/debates/${debateId}/vote/${userId}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+            }
+
+            // Submit the new vote
             const response = await fetch(`${API_BASE_URL}/debates/${debateId}/vote`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-                body: JSON.stringify({ type }),
+                body: JSON.stringify({ user_id: userId, type }),
             });
 
             if (!response.ok) throw new Error("Failed to submit vote.");
+
+            userVote = type;
             alert(`You voted ${type === "pro" ? "Pro" : "Con"}.`);
-            await fetchDebateDetails(); // Refresh vote counts
+            await fetchVotes();
         } catch (error) {
             alert(error.message);
         }
@@ -183,5 +238,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Initialize the page
     await fetchDebateDetails();
+    await fetchVotes();
     await fetchComments();
 });

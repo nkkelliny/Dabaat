@@ -95,7 +95,7 @@
                     <!-- User Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img id="dropdown-picture" src="assets/default-profile.png" alt="Profile Picture" class="mb-3" width="20" height="20"> <span id="username">User</span>
+                            <img id="dropdown-picture" src="assets/default-profile.png" alt="Profile Picture" class="mb-3" width="20" height="20" style="border-radius: 100px;"> <span id="username">User</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="/profile">Profile</a></li>
@@ -193,7 +193,7 @@
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
         const hash = md5(email.trim().toLowerCase());
-        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+        return `https://www.gravatar.com/avatar/${hash}`;
     }
 
     let debates = [];
@@ -246,7 +246,7 @@
                     <p class="card-text">${debate.description}</p>
                     <p class="card-text">Category: ${debate.category}</p>
                     <span>Poster: </span>&nbsp;
-                    <img src="https://www.gravatar.com/avatar/${gravatarHash}?s=50&d=identicon" alt="User Gravatar" class="me-3 rounded-circle" height="20px"><span>${debate.created_by_user}</span>
+                    <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle" height="20px"><span>${debate.created_by_user}</span>
                     <br>
                     <small class="text-muted">${new Date(debate.created_at).toLocaleString()}</small>
                     <div class="action-buttons">

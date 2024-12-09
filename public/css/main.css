@@ -5,3 +5,9 @@ hr{
 .auth-screen{
 	background-color: #f05403 !important;
 }
+
+.dropdown-item:active {
+  color: var(--bs-dropdown-link-active-color);
+  text-decoration: none;
+  background-color: #f05403 !important;
+}
