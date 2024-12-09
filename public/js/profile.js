@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             await fetchUserProfile(); // Reload updated profile
         } catch (error) {
             console.error("Error updating profile:", error);
-            alert("Failed to update profile. Please try again.");
+            alert("Failed to update profile. Email may be already taken.");
         }
     });
 

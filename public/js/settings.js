@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("Account information updated successfully.");
         } catch (error) {
             console.error("Error updating account:", error);
-            alert("Failed to update account information. Please try again.");
+            alert("Failed to update account information. Email may be taken.");
         }
     });
 
