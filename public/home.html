@@ -149,6 +149,7 @@
                 </div>
             </aside>
             <!-- Main Feed -->
+            <p id="loading">Loading...</p>
             <div class="feed" id="debatesFeed">
                 <!-- Dynamic content will be loaded here -->
             </div>
@@ -168,17 +169,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-    const debatesFeed = document.getElementById("debatesFeed");
-    const searchInput = document.getElementById("searchInput");
-    const categoryLinks = document.querySelectorAll(".category-filter a");
 
-    // Function to generate Gravatar URL
-    function getGravatarUrl(email, size = 150) {
-        const hash = md5(email.trim().toLowerCase());
-        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
-    }
+            document.getElementById("loading").style.display = "block";
 
-    // Function to load MD5 hashing library
+            // Function to load MD5 hashing library
     function loadMd5Library() {
         return new Promise((resolve) => {
             const script = document.createElement("script");
@@ -190,6 +184,17 @@
 
     // Initialize profile
     loadMd5Library();
+
+    setTimeout(function() {
+    const debatesFeed = document.getElementById("debatesFeed");
+    const searchInput = document.getElementById("searchInput");
+    const categoryLinks = document.querySelectorAll(".category-filter a");
+
+    // Function to generate Gravatar URL
+    function getGravatarUrl(email, size = 150) {
+        const hash = md5(email.trim().toLowerCase());
+        return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+    }
 
     let debates = [];
     let currentPage = 1;
@@ -351,6 +356,8 @@
     });
 });
 
+    document.getElementById("loading").style.display = "none";
+}, 1000);
 });
 
     </script>
