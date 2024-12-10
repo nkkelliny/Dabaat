@@ -382,4 +382,83 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Save a debate
+router.post('/:id/save', async (req, res) => {
+    const { id } = req.params; // Debate ID
+    const { user_id } = req.body; // User ID from request body
+
+    try {
+        // Insert into saved_debates table, ensuring no duplicates
+        await db.query(
+            `INSERT INTO saved_debates (user_id, debate_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE saved_at = CURRENT_TIMESTAMP`,
+            [user_id, id]
+        );
+
+        res.status(200).json({ message: 'Debate saved successfully!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Unsave a debate
+router.delete('/:id/unsave', async (req, res) => {
+    const { id } = req.params; // Debate ID
+    const { user_id } = req.body; // User ID from request body
+
+    try {
+        const [result] = await db.query(
+            `DELETE FROM saved_debates WHERE debate_id = ? AND user_id = ?`,
+            [id, user_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Debate not found in saved list.' });
+        }
+
+        res.status(200).json({ message: 'Debate unsaved successfully!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all saved debates for a user
+router.get('/saved/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const [savedDebates] = await db.query(
+            `SELECT d.*, u.username AS created_by_user
+             FROM saved_debates sd
+             JOIN debates d ON sd.debate_id = d.id
+             JOIN users u ON d.created_by = u.id
+             WHERE sd.user_id = ?`,
+            [userId]
+        );
+
+        res.status(200).json(savedDebates);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/:debateId/saved/:userId', async (req, res) => {
+    const { debateId, userId } = req.params;
+
+    try {
+        const [result] = await db.query(
+            `SELECT * FROM saved_debates WHERE debate_id = ? AND user_id = ?`,
+            [debateId, userId]
+        );
+
+        if (result.length > 0) {
+            res.status(200).json({ isSaved: true });
+        } else {
+            res.status(200).json({ isSaved: false });
+        }
+    } catch (error) {
+        console.error("Error checking if debate is saved:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

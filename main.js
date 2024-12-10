@@ -60,6 +60,10 @@ app.get('/manage', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'manage.html'));
 });
 
+app.get('/saved', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'save.html'));
+});
+
 app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });

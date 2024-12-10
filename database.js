@@ -125,6 +125,18 @@ async function createTables() {
         blacklisted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`;
 
+    const createSavedDebatesTable = `
+        CREATE TABLE IF NOT EXISTS saved_debates (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            debate_id INT NOT NULL,
+            saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE,
+            UNIQUE(user_id, debate_id)  -- Ensure a user can save a debate only once
+        )`;
+
+
     await db.query(createUsersTable);
     await db.query(createDebatesTable);
     await db.query(createParticipantsTable);
@@ -134,6 +146,7 @@ async function createTables() {
     await db.query(createComplaintsTable);
     await db.query(createUserBansTable);
     await db.query(createBlacklistTokens);
+    await db.query(createSavedDebatesTable); // Create the saved_debates table
 }
 
 async function close() {

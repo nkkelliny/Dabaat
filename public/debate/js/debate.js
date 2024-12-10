@@ -22,6 +22,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const username = document.getElementById("username");
     const dropdownPictureElement = document.getElementById("dropdown-picture");
 
+    const saveDebateButton = document.getElementById("save-debate-button");
+    let isDebateSaved = false;
+
 
     let userId = '';
     let isUserComment = false;
@@ -114,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             creatorGravatarElement.src = `https://www.gravatar.com/avatar/${gravatarHash}`;
 
             await fetchVotes();
+            await checkIfDebateSaved();
         } catch (error) {
             debateTitleElement.textContent = "Error Loading Debate";
             debateDescriptionElement.textContent = error.message;
@@ -293,6 +297,89 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Failed to delete comment.");
     }
 }
+
+async function checkIfDebateSaved() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/debates/${debateId}/saved/${userId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+
+        if (!response.ok) throw new Error("Failed to check if debate is saved.");
+
+        const data = await response.json();
+        isDebateSaved = data.isSaved;
+        updateSaveButton();
+    } catch (error) {
+        console.error("Error checking if debate is saved:", error);
+    }
+}
+
+    // Update the save button text based on save status
+    function updateSaveButton() {
+        if (isDebateSaved) {
+            saveDebateButton.innerHTML = `<i class="bi bi-bookmark-fill"></i> Unsave Debate`;
+        } else {
+            saveDebateButton.innerHTML = `<i class="bi bi-bookmark"></i> Save Debate`;
+        }
+    }
+
+    // Save debate function
+    async function saveDebate() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/save`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ user_id: userId }),
+            });
+
+            if (!response.ok) throw new Error("Failed to save debate.");
+
+            isDebateSaved = true;
+            updateSaveButton();
+            alert("Debate saved successfully!");
+        } catch (error) {
+            console.error("Error saving debate:", error);
+            alert("Failed to save debate.");
+        }
+    }
+
+    // Unsave debate function
+    async function unsaveDebate() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/unsave`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ user_id: userId }),
+            });
+
+            if (!response.ok) throw new Error("Failed to unsave debate.");
+
+            isDebateSaved = false;
+            updateSaveButton();
+            alert("Debate unsaved successfully!");
+        } catch (error) {
+            console.error("Error unsaving debate:", error);
+            alert("Failed to unsave debate.");
+        }
+    }
+
+    // Handle save button click
+    saveDebateButton.addEventListener("click", () => {
+        if (isDebateSaved) {
+            unsaveDebate();
+        } else {
+            saveDebate();
+        }
+    });
+
 
 
 

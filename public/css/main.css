@@ -11,3 +11,7 @@ hr{
   text-decoration: none;
   background-color: #f05403 !important;
 }
+
+.navbar-brand{
+	width: 50%;
+}
