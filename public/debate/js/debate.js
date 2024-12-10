@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     let userId = '';
+    let isUserComment = false;
 
     async function decryptData(encryptedData) {
     try {
@@ -119,34 +120,70 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Fetch comments
     async function fetchComments() {
         try {
             const response = await fetch(`${API_BASE_URL}/debates/${debateId}/comments`);
             if (!response.ok) throw new Error("Failed to fetch comments.");
 
             const comments = await response.json();
-            commentsContainer.innerHTML = "";
-
-            comments.forEach((comment) => {
-                const gravatarHash = md5(comment.email.trim().toLowerCase());
-                const commentElement = `
-                    <div class="comment d-flex align-items-start mb-3">
-                        <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
-                        <div>
-                            <strong>${comment.commenter}</strong>
-                            <p>${comment.content}</p>
-                            <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
-                        </div>
-                    </div>
-                `;
-                commentsContainer.insertAdjacentHTML("beforeend", commentElement);
-            });
+            renderComments(comments, userId); // Pass the current user's userId
         } catch (error) {
             commentsContainer.innerHTML = `<p class="text-muted">${error.message}</p>`;
         }
     }
 
+    function renderComments(comments, currentUserId) {
+    commentsContainer.innerHTML = ""; // Clear existing comments
+
+    comments.forEach((comment) => {
+        const gravatarHash = md5(comment.email.trim().toLowerCase());
+        console.log("COMMENT USER ID: " + comment.user_id);
+        console.log("CURRENT USER ID: " + currentUserId);
+
+        if(comment.user_id == currentUserId){
+            isUserComment = true;
+        } // Check if the comment belongs to the current user
+
+        if(isUserComment){
+            let commentElement = `
+            <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
+                            <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
+                            <div style="float: left; width: 100%;">
+                                <strong>${comment.commenter}</strong>
+                                <p>${comment.content}</p>
+                                <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                            </div>
+                            <div style="float: right">
+                                <button class="btn btn-sm btn-danger delete-comment-btn" data-comment-id="${comment.id}"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                        
+            `;
+            commentsContainer.insertAdjacentHTML("beforeend", commentElement);
+        }
+        else{
+            let commentElement = `
+            <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
+                            <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
+                            <div>
+                                <strong>${comment.commenter}</strong>
+                                <p>${comment.content}</p>
+                                <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                            </div>
+                        </div>
+            `;
+            commentsContainer.insertAdjacentHTML("beforeend", commentElement);
+        }
+    });
+
+    // Add event listeners for delete buttons
+    document.querySelectorAll(".delete-comment-btn").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            const commentId = event.currentTarget.dataset.commentId;
+            handleDeleteComment(commentId);
+        });
+    });
+}
     // Fetch votes
     async function fetchVotes() {
         try {
@@ -235,6 +272,29 @@ document.addEventListener("DOMContentLoaded", async () => {
             localStorage.removeItem("userId"); // Clear token
             window.location.href = "/login"; // Redirect to login
         });
+
+        async function handleDeleteComment(commentId) {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+
+        if (!response.ok) throw new Error("Failed to delete comment.");
+
+        alert("Comment deleted successfully.");
+        await fetchComments(); // Refresh the comments after deletion
+    } catch (error) {
+        console.error("Error deleting comment:", error);
+        alert("Failed to delete comment.");
+    }
+}
+
+
 
     // Initialize the page
     await fetchDebateDetails();
