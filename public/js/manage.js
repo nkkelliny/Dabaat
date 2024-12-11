@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="col-lg-4 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">${debate.title}</h5>
+                            <h5 class="card-title"><a href="http://localhost:3000/debate/${debate.id}">${debate.title}</a></h5>
                             <small class="card-text">${debate.category}</small>
                             <p class="card-text">${debate.description}</p>
                             <p class="text-muted">
