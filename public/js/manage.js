@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Initialize Quill editor with custom toolbar
     const quill = new Quill("#debate-description", {
         theme: "snow",
-        placeholder: "Write your comment...",
+        placeholder: "Write debate description...",
         modules: {
             toolbar: {
                 container: "#toolbar",
@@ -84,6 +84,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.getElementById("undo-button").addEventListener("click", () => quill.history.undo());
     document.getElementById("redo-button").addEventListener("click", () => quill.history.redo());
+
+    // Add a custom button click event for inserting videos
+document.getElementById("insert-video-button").addEventListener("click", () => {
+    const videoUrl = prompt("Enter the video URL (YouTube or direct video URL):");
+
+    if (videoUrl) {
+        const range = quill.getSelection();
+
+        // Check if the URL is a YouTube link
+        const youtubeMatch = videoUrl.match(
+            /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w\-]+)/
+        );
+
+        if (youtubeMatch) {
+            // Insert YouTube embed iframe
+            const youtubeEmbedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+            quill.insertEmbed(range.index, "video", youtubeEmbedUrl);
+        } else if (videoUrl.match(/\.(mp4|webm|ogg)$/i)) {
+            // For direct video file URLs, insert the URL as a video
+            quill.insertEmbed(range.index, "video", videoUrl);
+        } else {
+            alert("Invalid video URL. Please enter a valid YouTube or direct video URL.");
+        }
+    }
+});
+
 
     async function decryptData(encryptedData) {
     try {
@@ -237,7 +263,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 debateModalLabel.textContent = "Edit Debate";
                 debateTitleInput.value = debate.title;
                 debateCatInput.value = debate.category;
-                debateDescriptionInput.value = debate.description;
+
+                // Set the Quill editor content with the debate description HTML
+                quill.root.innerHTML = debate.description;
+
                 debateIdInput.value = debate.id;
                 debateModal.show();
             })

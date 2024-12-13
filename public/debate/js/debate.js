@@ -98,6 +98,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("undo-button").addEventListener("click", () => quill.history.undo());
     document.getElementById("redo-button").addEventListener("click", () => quill.history.redo());
 
+    // Add a custom button click event for inserting videos
+document.getElementById("insert-video-button").addEventListener("click", () => {
+    const videoUrl = prompt("Enter the video URL (YouTube or direct video URL):");
+
+    if (videoUrl) {
+        const range = quill.getSelection();
+
+        // Check if the URL is a YouTube link
+        const youtubeMatch = videoUrl.match(
+            /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w\-]+)/
+        );
+
+        if (youtubeMatch) {
+            // Insert YouTube embed iframe
+            const youtubeEmbedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+            quill.insertEmbed(range.index, "video", youtubeEmbedUrl);
+        } else if (videoUrl.match(/\.(mp4|webm|ogg)$/i)) {
+            // For direct video file URLs, insert the URL as a video
+            quill.insertEmbed(range.index, "video", videoUrl);
+        } else {
+            alert("Invalid video URL. Please enter a valid YouTube or direct video URL.");
+        }
+    }
+});
+
+
     async function decryptData(encryptedData) {
     try {
         const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
@@ -220,7 +246,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if(isUserComment){
             let commentElement = `
             <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
-                            <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
+                            <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="avatar me-3 rounded-circle">
                             <div style="float: left; width: 100%;">
                                 <strong>${comment.commenter}</strong>
                                 <p>${comment.content}</p>

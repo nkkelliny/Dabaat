@@ -15,3 +15,15 @@ hr{
 .navbar-brand{
 	width: 50%;
 }
+
+.comment img {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  margin-right: 15px;
+}
+
+.avatar{
+  width: 50px !important;
+  height: 50px !important;
+}
