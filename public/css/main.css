@@ -15,3 +15,9 @@ hr{
 .navbar-brand{
 	width: 50%;
 }
+
+@media (min-width: 576px) {
+  .modal-dialog {
+    max-width: 70vw !important;
+  }
+}

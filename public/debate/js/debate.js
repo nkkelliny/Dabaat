@@ -29,6 +29,75 @@ document.addEventListener("DOMContentLoaded", async () => {
     let userId = '';
     let isUserComment = false;
 
+    const wordCountElement = document.getElementById("word-count");
+
+    // Initialize Quill editor with custom toolbar
+    const quill = new Quill("#editor-container", {
+        theme: "snow",
+        placeholder: "Write your comment...",
+        modules: {
+            toolbar: {
+                container: "#toolbar",
+                handlers: {
+                    'color': function () {},
+                    'background': function () {}
+                }
+            }
+        }
+    });
+
+    document.getElementById("insert-image-button").addEventListener("click", () => {
+        const imageUrl = prompt("Enter the image URL:");
+        if (imageUrl) {
+            const range = quill.getSelection();
+            quill.insertEmbed(range.index, "image", imageUrl);
+        }
+    });
+
+
+    quill.on("text-change", (delta, oldDelta, source) => {
+        const text = quill.getText().trim();
+        const lines = text.split("\n");
+        const wordCount = text ? text.split(/\s+/).length : 0;
+        const charCount = text.length;
+
+        wordCountElement.textContent = `Words: ${wordCount} | Characters: ${charCount}`;
+
+        document.querySelectorAll("pre.ql-syntax").forEach((block) => {
+            hljs.highlightElement(block);
+        });
+    
+        lines.forEach((line, index) => {
+            if (line.startsWith("@")) {
+                const start = quill.getLine(index)[1].index;
+                const length = line.length;
+                quill.formatText(start, length, "bold", true);
+            }
+        });
+    });
+
+    quill.getModule("toolbar").addHandler("image", () => {
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("accept", "image/*");
+        input.click();
+    
+        input.onchange = () => {
+            const file = input.files[0];
+            const reader = new FileReader();
+    
+            reader.onload = () => {
+                const range = quill.getSelection();
+                quill.insertEmbed(range.index, "image", reader.result);
+            };
+    
+            reader.readAsDataURL(file);
+        };
+    });
+    
+    document.getElementById("undo-button").addEventListener("click", () => quill.history.undo());
+    document.getElementById("redo-button").addEventListener("click", () => quill.history.redo());
+
     async function decryptData(encryptedData) {
     try {
         const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
@@ -109,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const debate = await response.json();
             debateTitleElement.textContent = debate.title;
-            debateDescriptionElement.textContent = debate.description;
+            debateDescriptionElement.innerHTML = debate.description;
 
             // Display the creator's username and Gravatar
             creatorUsernameElement.textContent = debate.created_by_user;
@@ -210,28 +279,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Submit a comment
-    submitCommentButton.addEventListener("click", async () => {
-        const commentText = newCommentInput.value.trim();
-        if (!commentText) return alert("Please write a comment before submitting.");
+document.getElementById("submit-comment").addEventListener("click", async () => {
+    const commentText = quill.root.innerHTML.trim();
+    if (!commentText || commentText === "<p><br></p>") {
+        return alert("Please write a comment before submitting.");
+    }
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/comments`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-                body: JSON.stringify({ user_id: userId, text: commentText }),
-            });
+    try {
+        const response = await fetch(`${API_BASE_URL}/debates/${debateId}/comments`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ user_id: userId, text: commentText }),
+        });
 
-            if (!response.ok) throw new Error("Failed to submit comment.");
+        if (!response.ok) throw new Error("Failed to submit comment.");
 
-            newCommentInput.value = "";
-            await fetchComments();
-        } catch (error) {
-            alert(error.message);
-        }
-    });
+        quill.setContents([]); // Clear the editor after submission
+        await fetchComments(); // Refresh the comments
+    } catch (error) {
+        alert(error.message);
+    }
+});
 
     // Handle voting
     voteProButton.addEventListener("click", async () => handleVote("pro"));

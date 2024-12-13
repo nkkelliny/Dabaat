@@ -16,6 +16,75 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let userId = '';
 
+    const wordCountElement = document.getElementById("word-count");
+
+    // Initialize Quill editor with custom toolbar
+    const quill = new Quill("#debate-description", {
+        theme: "snow",
+        placeholder: "Write your comment...",
+        modules: {
+            toolbar: {
+                container: "#toolbar",
+                handlers: {
+                    'color': function () {},
+                    'background': function () {}
+                }
+            }
+        }
+    });
+
+    document.getElementById("insert-image-button").addEventListener("click", () => {
+        const imageUrl = prompt("Enter the image URL:");
+        if (imageUrl) {
+            const range = quill.getSelection();
+            quill.insertEmbed(range.index, "image", imageUrl);
+        }
+    });
+
+
+    quill.on("text-change", (delta, oldDelta, source) => {
+        const text = quill.getText().trim();
+        const lines = text.split("\n");
+        const wordCount = text ? text.split(/\s+/).length : 0;
+        const charCount = text.length;
+
+        wordCountElement.textContent = `Words: ${wordCount} | Characters: ${charCount}`;
+
+        document.querySelectorAll("pre.ql-syntax").forEach((block) => {
+            hljs.highlightElement(block);
+        });
+    
+        lines.forEach((line, index) => {
+            if (line.startsWith("@")) {
+                const start = quill.getLine(index)[1].index;
+                const length = line.length;
+                quill.formatText(start, length, "bold", true);
+            }
+        });
+    });
+
+    quill.getModule("toolbar").addHandler("image", () => {
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("accept", "image/*");
+        input.click();
+    
+        input.onchange = () => {
+            const file = input.files[0];
+            const reader = new FileReader();
+    
+            reader.onload = () => {
+                const range = quill.getSelection();
+                quill.insertEmbed(range.index, "image", reader.result);
+            };
+    
+            reader.readAsDataURL(file);
+        };
+    });
+    
+    document.getElementById("undo-button").addEventListener("click", () => quill.history.undo());
+    document.getElementById("redo-button").addEventListener("click", () => quill.history.redo());
+
     async function decryptData(encryptedData) {
     try {
         const response = await fetch(`${API_BASE_URL}/encrypt/decrypt`, {
@@ -207,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const debateData = {
             title: debateTitleInput.value.trim(),
             category: debateCatInput.value.trim(),
-            description: debateDescriptionInput.value.trim(),
+            description: quill.root.innerHTML.trim(),
             created_by: userId, // Assuming userId is stored in localStorage
         };
 

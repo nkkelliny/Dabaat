@@ -13,7 +13,12 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="css/styles.css" rel="stylesheet" />
     <link href="css/main.css" rel="stylesheet" />
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
     <style>
         .comment {
             display: flex;
@@ -38,6 +43,21 @@
             height: 60px;
             border-radius: 50%;
         }
+        #toolbar {
+            border: 1px solid #ccc;
+            border-radius: 4px 4px 0 0;
+            background-color: #f8f9fa;
+            padding: 5px;
+        }
+
+        #editor-container {
+            border: 1px solid #ccc;
+            border-radius: 0 0 4px 4px;
+            background-color: #fff;
+            padding: 10px;
+            min-height: 200px;
+        }
+
     </style>
 </head>
 <body>
@@ -109,7 +129,49 @@
                 </div>
             </div>
             <div class="mt-4">
-                <textarea class="form-control mb-3" id="new-comment" placeholder="Write your comment..." rows="3"></textarea>
+                <div id="toolbar">
+                    <!-- Text formatting -->
+                    <select class="ql-header">
+                        <option value="1">H1</option>
+                        <option value="2">H2</option>
+                        <option value="3">H3</option>
+                        <option selected>Normal</option>
+                    </select>
+                    <select class="ql-font">
+                        <option selected></option>
+                        <option value="serif"></option>
+                        <option value="monospace"></option>
+                    </select>
+                    <select class="ql-size">
+                        <option value="small"></option>
+                        <option selected></option>
+                        <option value="large"></option>
+                        <option value="huge"></option>
+                    </select>
+                    <button class="ql-bold"></button>
+                    <button class="ql-italic"></button>
+                    <button class="ql-underline"></button>
+                    <button class="ql-strike"></button>
+                    <button class="ql-align" value=""></button>
+                    <button class="ql-align" value="center"></button>
+                    <button class="ql-align" value="right"></button>
+                    <button class="ql-align" value="justify"></button>
+                    <button class="ql-code-block"></button>
+                    <button class="ql-blockquote"></button>
+                    <button class="ql-list" value="ordered"></button>
+                    <button class="ql-list" value="bullet"></button>
+                    <button class="ql-indent" value="-1"></button>
+                    <button class="ql-indent" value="+1"></button>
+                    <button class="ql-link"></button>
+                    <button id="undo-button"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button id="redo-button"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button id="insert-image-button" type="button"><i class="bi bi-card-image"></i></button>
+                </div>
+            
+                <!-- Quill Editor Container -->
+                <div id="editor-container" class="mb-3" style="height: 150px;"></div>
+                <div id="word-count">Words: 0 | Characters: 0</div>
+                <br>
                 <button class="btn btn-warning" id="submit-comment">Submit Comment</button>
             </div>
         </div>
@@ -132,6 +194,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     <!-- Core theme JS-->
     <script src="js/scripts.js"></script>
+    <!-- Quill JS -->
     <!-- Client-Side Script -->
     <script src="js/debate.js"></script>
 </body>

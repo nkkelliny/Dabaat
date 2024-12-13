@@ -13,7 +13,11 @@
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="css/styles.css" rel="stylesheet" />
     <link href="css/main.css" rel="stylesheet" />
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -103,8 +107,48 @@
                         </select>
                     </div>
                     <div class="form-group mb-3">
-                        <label for="debate-description">Debate Description</label>
-                        <textarea class="form-control" id="debate-description" rows="4" placeholder="Enter debate description" required></textarea>
+                        <div id="toolbar">
+                            <!-- Text formatting -->
+                            <select class="ql-header">
+                                <option value="1">H1</option>
+                                <option value="2">H2</option>
+                                <option value="3">H3</option>
+                                <option selected>Normal</option>
+                            </select>
+                            <select class="ql-font">
+                                <option selected></option>
+                                <option value="serif"></option>
+                                <option value="monospace"></option>
+                            </select>
+                            <select class="ql-size">
+                                <option value="small"></option>
+                                <option selected></option>
+                                <option value="large"></option>
+                                <option value="huge"></option>
+                            </select>
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-strike"></button>
+                            <button class="ql-align" value=""></button>
+                            <button class="ql-align" value="center"></button>
+                            <button class="ql-align" value="right"></button>
+                            <button class="ql-align" value="justify"></button>
+                            <button class="ql-code-block"></button>
+                            <button class="ql-blockquote"></button>
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                            <button class="ql-indent" value="-1"></button>
+                            <button class="ql-indent" value="+1"></button>
+                            <button class="ql-link"></button>
+                            <button id="undo-button"><i class="bi bi-arrow-counterclockwise"></i></button>
+                            <button id="redo-button"><i class="bi bi-arrow-clockwise"></i></button>
+                            <button id="insert-image-button" type="button"><i class="bi bi-card-image"></i></button>
+                        </div>
+                    
+                        <!-- Quill Editor Container -->
+                        <div id="debate-description" class="mb-3" style="height: 150px;"></div>
+                        <div id="word-count">Words: 0 | Characters: 0</div>
                     </div>
                     <input type="hidden" id="debate-id">
                     <button type="submit" class="btn btn-warning w-100">Save</button>
