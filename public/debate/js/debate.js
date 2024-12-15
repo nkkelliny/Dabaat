@@ -343,8 +343,8 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
         // Format the quoted content with a blockquote
         const quotedContent = `
             <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #555;">
-                <span><strong>@${commenter}</strong> said:${content}</span>
-            </blockquote><p><br></p>
+                <span><strong>@${commenter}</strong> said: ${content}</span>
+            </blockquote>
         `;
     
         // Insert the quoted content into the editor
@@ -423,40 +423,54 @@ document.getElementById("submit-comment").addEventListener("click", async () => 
 
     // Handle voting
     voteProButton.addEventListener("click", async () => handleVote("pro"));
-    voteConButton.addEventListener("click", async () => handleVote("con"));
+voteConButton.addEventListener("click", async () => handleVote("con"));
 
-    async function handleVote(type) {
-
-        try {
-            // Delete the user's current vote if it exists
-            if (userVote) {
-                await fetch(`${API_BASE_URL}/debates/${debateId}/vote/${userId}`, {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                });
-            }
-
-            // Submit the new vote
-            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/vote`, {
-                method: "POST",
+async function handleVote(type) {
+    try {
+        // If the user is voting the same type twice, delete the vote
+        if (userVote === type) {
+            await fetch(`${API_BASE_URL}/debates/${debateId}/vote/${userId}`, {
+                method: "DELETE",
                 headers: {
-                    "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-                body: JSON.stringify({ user_id: userId, type }),
             });
-
-            if (!response.ok) throw new Error("Failed to submit vote.");
-
-            userVote = type;
-            alert(`You voted ${type === "pro" ? "Pro" : "Con"}.`);
+            userVote = null;
+            alert("Your vote has been removed.");
             await fetchVotes();
-        } catch (error) {
-            alert(error.message);
+            return;
         }
+
+        // Delete the user's current vote if it exists and is different from the new vote
+        if (userVote) {
+            await fetch(`${API_BASE_URL}/debates/${debateId}/vote/${userId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+        }
+
+        // Submit the new vote
+        const response = await fetch(`${API_BASE_URL}/debates/${debateId}/vote`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ user_id: userId, type }),
+        });
+
+        if (!response.ok) throw new Error("Failed to submit vote.");
+
+        userVote = type;
+        alert(`You voted ${type === "pro" ? "Pro" : "Con"}.`);
+        await fetchVotes();
+    } catch (error) {
+        alert(error.message);
     }
+}
+
 
     // Logout functionality
         document.querySelector(".dropdown-item[href='/']").addEventListener("click", () => {
