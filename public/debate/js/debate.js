@@ -231,58 +231,129 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
         }
     }
 
+    async function fetchUserVotes(debateId, userId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/user-votes/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            if (!response.ok) throw new Error('Failed to fetch user votes.');
+    
+            return await response.json(); // Returns an array of votes [{ comment_id: 1, vote: 'like' }]
+        } catch (error) {
+            console.error('Error fetching user votes:', error);
+            return [];
+        }
+    }
+
+    let userVotes = await fetchUserVotes(debateId, userId);
+    
+
     function renderComments(comments, currentUserId) {
-    commentsContainer.innerHTML = ""; // Clear existing comments
+        commentsContainer.innerHTML = ""; // Clear existing comments
+    
+        comments.forEach((comment) => {
+            const gravatarHash = md5(comment.email.trim().toLowerCase());
+            const isUserComment = comment.user_id === currentUserId;
+            const userVote = userVotes.find(vote => vote.comment_id === comment.id);
+            let commentElement = '';
 
-    comments.forEach((comment) => {
-        const gravatarHash = md5(comment.email.trim().toLowerCase());
-        console.log("COMMENT USER ID: " + comment.user_id);
-        console.log("CURRENT USER ID: " + currentUserId);
-
-        if(comment.user_id == currentUserId){
-            isUserComment = true;
-        } // Check if the comment belongs to the current user
-
-        if(isUserComment){
-            let commentElement = `
-            <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
-                            <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="avatar me-3 rounded-circle">
-                            <div style="float: left; width: 100%;">
-                                <strong>${comment.commenter}</strong>
-                                <p>${comment.content}</p>
-                                <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
-                            </div>
-                            <div style="float: right">
-                                <button class="btn btn-sm btn-danger delete-comment-btn" data-comment-id="${comment.id}"><i class="bi bi-trash"></i></button>
-                            </div>
+            if(comment.user_id == currentUserId){
+                commentElement = `
+                <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
+                    <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="avatar me-3 rounded-circle">
+                    <div style="width: 100%;">
+                        <strong>${comment.commenter}</strong>
+                        <p>${comment.content}</p>
+                        <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                        <button class="btn btn-sm btn-outline-danger delete-comment-btn" data-comment-id="${comment.id}" style="float: right; border: 0;"><i class="bi bi-x"></i> Delete</button>
+                    </div>
+                </div>
+                `;
+            }
+            else{
+                commentElement = `
+                <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
+                    <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="avatar me-3 rounded-circle">
+                    <div style="width: 100%;">
+                        <strong>${comment.commenter}</strong>
+                        <p>${comment.content}</p>
+                        <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-warning reply-btn" data-comment-id="${comment.id}" data-commenter="${comment.commenter}" data-content="${comment.content}" style="border: 0;">Reply</button>
+                            <button class="btn btn-sm btn-outline-success like-btn" style="border: 0;" data-comment-id="${comment.id}" ${userVote}>
+                                <i class="bi bi-hand-thumbs-up"></i> (${comment.likes || 0})
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger dislike-btn" style="border: 0;" data-comment-id="${comment.id}" ${userVote}>
+                                <i class="bi bi-hand-thumbs-down"></i> (${comment.dislikes || 0})
+                            </button>
                         </div>
-                        
-            `;
+                    </div>
+                </div>
+                `;
+            }
+    
             commentsContainer.insertAdjacentHTML("beforeend", commentElement);
-        }
-        else{
-            let commentElement = `
-            <div class="comment d-flex align-items-start mb-3" style="border-bottom: 1px solid; padding-bottom: 5px;">
-                            <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle">
-                            <div>
-                                <strong>${comment.commenter}</strong>
-                                <p>${comment.content}</p>
-                                <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
-                            </div>
-                        </div>
-            `;
-            commentsContainer.insertAdjacentHTML("beforeend", commentElement);
-        }
-    });
-
-    // Add event listeners for delete buttons
-    document.querySelectorAll(".delete-comment-btn").forEach((button) => {
-        button.addEventListener("click", (event) => {
-            const commentId = event.currentTarget.dataset.commentId;
-            handleDeleteComment(commentId);
         });
-    });
-}
+    
+        // Add event listener for reply buttons
+        document.querySelectorAll(".reply-btn").forEach((button) => {
+            button.addEventListener("click", handleReply);
+        });
+    
+        document.querySelectorAll(".like-btn").forEach((button) => {
+            button.addEventListener("click", () => handleLikeDislike(button.dataset.commentId, userId, "like"));
+        });
+    
+        document.querySelectorAll(".dislike-btn").forEach((button) => {
+            button.addEventListener("click", () => handleLikeDislike(button.dataset.commentId, userId, "dislike"));
+        });
+    
+        document.querySelectorAll(".delete-comment-btn").forEach((button) => {
+            button.addEventListener("click", (event) => {
+                const commentId = event.currentTarget.dataset.commentId;
+                handleDeleteComment(commentId);
+            });
+        });
+    }
+
+    function handleReply(event) {
+        const commenter = event.currentTarget.dataset.commenter;
+        const content = event.currentTarget.dataset.content;
+    
+        // Format the quoted content with a blockquote
+        const quotedContent = `<blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #555;">
+                                <strong>${commenter} said:</strong><br>${content}
+                                </blockquote><p><br></p>`;
+    
+        // Insert the quoted content into the editor
+        quill.root.innerHTML += quotedContent;
+    
+        // Focus the editor for the user to start typing their reply
+        quill.focus();
+    }
+    
+    
+    async function handleLikeDislike(commentId, userId, action) {
+        console.log("USER ID: " + userId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/comments/${commentId}/${userId}/${action}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+    
+            if (!response.ok) throw new Error(`Failed to ${action} the comment.`);
+    
+            await fetchComments(); // Refresh comments to show updated likes/dislikes
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+    
+    
     // Fetch votes
     async function fetchVotes() {
         try {
@@ -388,7 +459,7 @@ document.getElementById("submit-comment").addEventListener("click", async () => 
         if (!response.ok) throw new Error("Failed to delete comment.");
 
         alert("Comment deleted successfully.");
-        await fetchComments(); // Refresh the comments after deletion
+        window.location.reload();
     } catch (error) {
         console.error("Error deleting comment:", error);
         alert("Failed to delete comment.");
@@ -476,9 +547,6 @@ async function checkIfDebateSaved() {
             saveDebate();
         }
     });
-
-
-
 
     // Initialize the page
     await fetchDebateDetails();

@@ -461,4 +461,21 @@ router.get('/:debateId/saved/:userId', async (req, res) => {
     }
 });
 
+// Get user votes for comments in a specific debate
+router.get('/:debateId/user-votes/:userId', async (req, res) => {
+    const { debateId, userId } = req.params;
+
+    try {
+        const [votes] = await db.query(
+            `SELECT comment_id, vote FROM comment_votes
+             WHERE comment_id IN (SELECT id FROM comments WHERE debate_id = ?) AND user_id = ?`,
+            [debateId, userId]
+        );
+
+        res.status(200).json(votes);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

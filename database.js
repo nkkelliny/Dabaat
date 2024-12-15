@@ -69,12 +69,28 @@ async function createTables() {
             content TEXT NOT NULL,
             debate_id INT,
             user_id INT NOT NULL,
+            parent_comment_id INT DEFAULT NULL,            -- For replies to comments
+            likes INT DEFAULT 0,                           -- Number of likes
+            dislikes INT DEFAULT 0,                        -- Number of dislikes
             is_flagged BOOLEAN DEFAULT FALSE,
             flag_reason TEXT,
             flagged_at DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (debate_id) REFERENCES debates(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (parent_comment_id) REFERENCES comments(id) ON DELETE CASCADE -- For nested replies
+        )`;
+
+    const createCommentVotesTable = `
+        CREATE TABLE IF NOT EXISTS comment_votes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            comment_id INT NOT NULL,
+            user_id INT NOT NULL,
+            vote ENUM('like', 'dislike') NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (comment_id, user_id),
+            FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )`;
 
@@ -142,6 +158,7 @@ async function createTables() {
     await db.query(createParticipantsTable);
     await db.query(createVotesTable);
     await db.query(createCommentsTable);
+    await db.query(createCommentVotesTable);
     await db.query(createFlagsTable);
     await db.query(createComplaintsTable);
     await db.query(createUserBansTable);
