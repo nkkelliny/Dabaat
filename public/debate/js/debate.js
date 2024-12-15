@@ -267,6 +267,15 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
                         <strong>${comment.commenter}</strong>
                         <p>${comment.content}</p>
                         <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-warning reply-btn" data-comment-id="${comment.id}" data-commenter="${comment.commenter}" data-content="${comment.content}" style="border: 0;">Reply</button>
+                            <button class="btn btn-sm btn-outline-success like-btn" style="border: 0;" data-comment-id="${comment.id}" ${userVote}>
+                                <i class="bi bi-hand-thumbs-up"></i> (${comment.likes || 0})
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger dislike-btn" style="border: 0;" data-comment-id="${comment.id}" ${userVote}>
+                                <i class="bi bi-hand-thumbs-down"></i> (${comment.dislikes || 0})
+                            </button>
+                        </div>
                         <button class="btn btn-sm btn-outline-danger delete-comment-btn" data-comment-id="${comment.id}" style="float: right; border: 0;"><i class="bi bi-x"></i> Delete</button>
                     </div>
                 </div>
@@ -319,16 +328,27 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
     }
 
     function handleReply(event) {
+        // Get the commenter and content from the button's data attributes
         const commenter = event.currentTarget.dataset.commenter;
         const content = event.currentTarget.dataset.content;
     
+        if (!commenter || !content) {
+            alert("Failed to capture commenter or content for the reply.");
+            return;
+        }
+    
+        console.log("Replying to:", commenter);
+        console.log("Original comment content:", content);
+    
         // Format the quoted content with a blockquote
-        const quotedContent = `<blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #555;">
-                                <strong>${commenter} said:</strong><br>${content}
-                                </blockquote><p><br></p>`;
+        const quotedContent = `
+            <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #555;">
+                <span><strong>@${commenter}</strong> said:${content}</span>
+            </blockquote><p><br></p>
+        `;
     
         // Insert the quoted content into the editor
-        quill.root.innerHTML += quotedContent;
+        quill.clipboard.dangerouslyPasteHTML(quill.getLength(), quotedContent);
     
         // Focus the editor for the user to start typing their reply
         quill.focus();
