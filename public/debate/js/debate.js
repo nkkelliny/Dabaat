@@ -328,31 +328,32 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
     }
 
     function handleReply(event) {
-        // Get the commenter and content from the button's data attributes
-        const commenter = event.currentTarget.dataset.commenter;
-        const content = event.currentTarget.dataset.content;
-    
-        if (!commenter || !content) {
-            alert("Failed to capture commenter or content for the reply.");
-            return;
-        }
-    
-        console.log("Replying to:", commenter);
-        console.log("Original comment content:", content);
-    
-        // Format the quoted content with a blockquote
-        const quotedContent = `
-            <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; color: #555;">
-                <span><strong>@${commenter}</strong> said: ${content}</span>
-            </blockquote>
-        `;
-    
-        // Insert the quoted content into the editor
-        quill.clipboard.dangerouslyPasteHTML(quill.getLength(), quotedContent);
-    
-        // Focus the editor for the user to start typing their reply
-        quill.focus();
+    // Get the commenter and content from the button's data attributes
+    const commenter = event.currentTarget.dataset.commenter;
+    const content = event.currentTarget.dataset.content;
+
+    if (!commenter || !content) {
+        alert("Failed to capture commenter or content for the reply.");
+        return;
     }
+
+    console.log("Replying to:", commenter);
+    console.log("Original comment content:", content);
+
+    // Format the quoted content with a blockquote and make it uneditable
+    const quotedContent = `
+        <blockquote contenteditable="false" style="border-left: 3px solid #ccc; padding-left: 10px; color: #555;">
+            <span><strong>@${commenter}</strong> said: ${content}</span>
+        </blockquote>
+    `;
+
+    // Insert the quoted content into the editor
+    quill.clipboard.dangerouslyPasteHTML(quill.getLength(), quotedContent);
+
+    // Focus the editor for the user to start typing their reply
+    quill.focus();
+}
+
     
     
     async function handleLikeDislike(commentId, userId, action) {
