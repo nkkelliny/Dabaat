@@ -354,8 +354,6 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
     quill.focus();
 }
 
-    
-    
     async function handleLikeDislike(commentId, userId, action) {
         console.log("USER ID: " + userId);
         try {
