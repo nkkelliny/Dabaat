@@ -22,6 +22,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const username = document.getElementById("username");
     const dropdownPictureElement = document.getElementById("dropdown-picture");
 
+    // Other existing elements
+    const reportDebateButton = document.getElementById("report-debate-button");
+    const confirmReportButton = document.getElementById("confirm-report-button");
+    const reportReasonInput = document.getElementById("report-reason");
+
 
     let userId = '';
 
@@ -228,6 +233,38 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert(error.message);
         }
     }
+
+    // Function to report a debate
+    async function reportDebate() {
+        const reason = reportReasonInput.value.trim();
+
+        if (!reason) {
+            alert("Please provide a reason for reporting.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/report`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ report_reason: reason }),
+            });
+
+            if (!response.ok) throw new Error("Failed to report the debate.");
+
+            alert("Debate reported successfully!");
+            reportReasonInput.value = ""; // Clear the input
+            document.getElementById("reportModal").querySelector(".btn-close").click(); // Close modal
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    // Attach event listener to confirm report button
+    confirmReportButton.addEventListener("click", reportDebate);
 
     // Logout functionality
         document.querySelector(".dropdown-item[href='/']").addEventListener("click", () => {

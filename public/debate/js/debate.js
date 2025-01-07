@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const saveDebateButton = document.getElementById("save-debate-button");
     let isDebateSaved = false;
 
+        // Other existing elements
+        const reportDebateButton = document.getElementById("report-debate-button");
+        const confirmReportButton = document.getElementById("confirm-report-button");
+        const reportReasonInput = document.getElementById("report-reason");
+
 
     let userId = '';
     let isUserComment = false;
@@ -211,6 +216,12 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
             const gravatarHash = md5(debate.creator_email.trim().toLowerCase());
             creatorGravatarElement.src = `https://www.gravatar.com/avatar/${gravatarHash}`;
 
+            // Check if the debate is reported
+            if (debate.report_flag) {
+                displayReportedBadge(debate.report_reason);
+                reportDebateButton.disabled = true; 
+            }
+
             await fetchVotes();
             await checkIfDebateSaved();
         } catch (error) {
@@ -218,6 +229,18 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
             debateDescriptionElement.textContent = error.message;
         }
     }
+
+    // Function to display a "Reported" badge or message
+function displayReportedBadge(reportReason) {
+    const reportedBadge = document.createElement("div");
+    reportedBadge.className = "alert alert-danger mt-3";
+    reportedBadge.role = "alert";
+    reportedBadge.innerHTML = `
+        <strong>Reported!</strong> This debate has been reported for the following reason: 
+        <em>${reportReason || "Reason not provided"}</em>
+    `;
+    debateTitleElement.insertAdjacentElement("afterend", reportedBadge);
+}
 
     async function fetchComments() {
         try {
@@ -571,6 +594,38 @@ async function checkIfDebateSaved() {
             alert("Failed to unsave debate.");
         }
     }
+
+    // Function to report a debate
+    async function reportDebate() {
+        const reason = reportReasonInput.value.trim();
+
+        if (!reason) {
+            alert("Please provide a reason for reporting.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/debates/${debateId}/report`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({ report_reason: reason }),
+            });
+
+            if (!response.ok) throw new Error("Failed to report the debate.");
+
+            alert("Debate reported successfully!");
+            reportReasonInput.value = ""; // Clear the input
+            document.getElementById("reportModal").querySelector(".btn-close").click(); // Close modal
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    // Attach event listener to confirm report button
+    confirmReportButton.addEventListener("click", reportDebate);
 
     // Handle save button click
     saveDebateButton.addEventListener("click", () => {

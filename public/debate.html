@@ -120,10 +120,37 @@
                     <button id="save-debate-button" class="btn btn-sm btn-warning">
                         <i class="bi bi-bookmark"></i> Save Debate
                     </button>
+                    <button id="report-debate-button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#reportModal">
+                        <i class="bi bi-flag"></i> Report Debate
+                    </button>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Report Debate Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">Report Debate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="report-form">
+                    <div class="mb-3">
+                        <label for="report-reason" class="form-label">Reason for Reporting</label>
+                        <textarea id="report-reason" class="form-control" rows="3" placeholder="Enter the reason for reporting this debate"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirm-report-button" class="btn btn-danger">Confirm Report</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Comments Section -->
     <section class="py-5 bg-light" id="comments">

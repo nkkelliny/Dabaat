@@ -98,6 +98,14 @@
         .search-bar {
             margin-bottom: 20px;
         }
+        .badge-reported {
+        color: white;
+        background-color: #dc3545; /* Bootstrap danger color */
+        padding: 5px 10px;
+        font-size: 12px;
+        border-radius: 5px;
+        margin-left: 10px;
+    }
     </style>
 </head>
 <body>
@@ -287,20 +295,29 @@
             card.dataset.id = debate.id;
             card.dataset.category = debate.category;
             const gravatarHash = md5(debate.email.trim().toLowerCase());
+
+            // Check if the debate is reported and add a badge
+            const reportedBadge = debate.report_flag
+            ? `<span class="badge-reported"><i class="bi bi-flag-fill"></i>&nbsp;Reported</span>`
+            : "";
+
             card.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">${debate.title}</h5>
-                    <p class="card-text">${debate.description}</p>
-                    <p class="card-text">Category: ${debate.category}</p>
-                    <span>Poster: </span>&nbsp;
-                    <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle" height="20px"><span>${debate.created_by_user}</span>
-                    <br>
-                    <small class="text-muted">${new Date(debate.created_at).toLocaleString()}</small>
-                    <div class="action-buttons">
-                        <a href="/debate/${debate.id}" class="btn btn-warning btn-sm">Join Debate</a>
-                    </div>
+            <div class="card-body">
+                <h5 class="card-title">
+                    ${debate.title}
+                    ${reportedBadge}
+                </h5>
+                <p class="card-text">${debate.description}</p>
+                <p class="card-text">Category: ${debate.category}</p>
+                <span>Poster: </span>&nbsp;
+                <img src="https://www.gravatar.com/avatar/${gravatarHash}" alt="User Gravatar" class="me-3 rounded-circle" height="20px"><span>${debate.created_by_user}</span>
+                <br>
+                <small class="text-muted">${new Date(debate.created_at).toLocaleString()}</small>
+                <div class="action-buttons">
+                    <a href="/debate/${debate.id}" class="btn btn-warning btn-sm">Join Debate</a>
                 </div>
-            `;
+            </div>
+        `;
             debatesFeed.appendChild(card);
         });
     };

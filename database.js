@@ -35,6 +35,8 @@ async function createTables() {
             created_by INT NOT NULL,
             status ENUM('open', 'closed') DEFAULT 'open',
             winner_id INT,
+            report_flag BOOLEAN DEFAULT FALSE,
+            report_reason TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,

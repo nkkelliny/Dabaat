@@ -478,4 +478,28 @@ router.get('/:debateId/user-votes/:userId', async (req, res) => {
     }
 });
 
+// Report a debate
+router.post('/:id/report', async (req, res) => {
+    const { id } = req.params; // Debate ID
+    const { report_reason } = req.body; // Reason for reporting
+
+    try {
+        // Update the debate's report_flag and report_reason
+        const [result] = await db.query(
+            `UPDATE debates SET report_flag = TRUE, report_reason = ? WHERE id = ?`,
+            [report_reason, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Debate not found or already reported.' });
+        }
+
+        res.status(200).json({ message: 'Debate reported successfully!' });
+    } catch (error) {
+        console.error("Error reporting debate:", error);
+        res.status(500).json({ error: 'An error occurred while reporting the debate.' });
+    }
+});
+
+
 module.exports = router;

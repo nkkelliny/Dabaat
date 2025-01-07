@@ -209,10 +209,16 @@ document.getElementById("insert-video-button").addEventListener("click", () => {
         debatesContainer.innerHTML = "";
 
         debates.forEach((debate) => {
+            // Check if the debate is reported and add a badge
+            const reportedBadge = debate.report_flag
+            ? `<span class="badge-reported btn-sm btn btn-danger"><i class="bi bi-flag-fill"></i>&nbsp;Reported</span><br><br>`
+            : "";
+
             const debateCard = `
                 <div class="col-lg-4 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body">
+                        ${reportedBadge}
                             <h5 class="card-title"><a href="http://localhost:3000/debate/${debate.id}">${debate.title}</a></h5>
                             <small class="card-text">${debate.category}</small>
                             <p class="card-text">${debate.description}</p>
