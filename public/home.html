@@ -31,6 +31,7 @@
         .sidebar {
             flex: 1;
             max-width: 300px;
+            height: 100%;
             background-color: #fff;
             border-radius: 10px;
             padding: 20px;
@@ -73,7 +74,25 @@
             text-decoration: none;
             color: #f05403; /* Green links */
         }
-        .category-filter a:hover {
+        .popular-debates a:hover {
+            text-decoration: underline;
+        }
+        .popular-debates h4 {
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .popular-debates ul {
+            padding-left: 0;
+            list-style-type: none;
+        }
+        .popular-debates li {
+            margin-bottom: 10px;
+        }
+        .popular-debates a {
+            text-decoration: none;
+            color: #f05403; /* Green links */
+        }
+        .popular-debates a:hover {
             text-decoration: underline;
         }
         .search-bar {
@@ -123,33 +142,43 @@
             <aside class="sidebar">
                 <div class="category-filter">
                     <h4>Filter by Category</h4>
-                    <ul>
+                    <ul id="categoryList">
                         <li><a href="#" data-category="All">All</a></li>
                         <li><a href="#" data-category="AI">Artificial Intelligence</a></li>
                         <li><a href="#" data-category="Tech">Technology</a></li>
                         <li><a href="#" data-category="Education">Education</a></li>
                         <li><a href="#" data-category="Sports">Sports</a></li>
                         <li><a href="#" data-category="Finance">Finance</a></li>
-                        <li><a href="#" data-category="Science">Science</a></li>
-                        <li><a href="#" data-category="Math">Mathematics</a></li>
-                        <li><a href="#" data-category="Literature">Literature</a></li>
-                        <li><a href="#" data-category="Art">Art</a></li>
-                        <li><a href="#" data-category="Music">Music</a></li>
-                        <li><a href="#" data-category="Movies">Movies</a></li>
-                        <li><a href="#" data-category="T.V.">Television</a></li>
-                        <li><a href="#" data-category="Video Games">Video Games</a></li>
-                        <li><a href="#" data-category="Family">Family</a></li>
-                        <li><a href="#" data-category="Religion">Religion</a></li>
-                        <li><a href="#" data-category="Mystery">Mystery</a></li>
-                        <li><a href="#" data-category="Romance">Romance</a></li>
-                        <li><a href="#" data-category="Drama">Drama</a></li>
-                        <li><a href="#" data-category="Crime">Crime</a></li>
-                        <li><a href="#" data-category="Environment">Environment</a></li>
-                        <li><a href="#" data-category="Space">Space</a></li>
-                        <li><a href="#" data-category="Politics">Politics</a></li>
+                        <div class="extra-categories" style="display: none;">
+                            <li><a href="#" data-category="Science">Science</a></li>
+                            <li><a href="#" data-category="Math">Mathematics</a></li>
+                            <li><a href="#" data-category="Literature">Literature</a></li>
+                            <li><a href="#" data-category="Art">Art</a></li>
+                            <li><a href="#" data-category="Music">Music</a></li>
+                            <li><a href="#" data-category="Movies">Movies</a></li>
+                            <li><a href="#" data-category="T.V.">Television</a></li>
+                            <li><a href="#" data-category="Video Games">Video Games</a></li>
+                            <li><a href="#" data-category="Family">Family</a></li>
+                            <li><a href="#" data-category="Religion">Religion</a></li>
+                            <li><a href="#" data-category="Mystery">Mystery</a></li>
+                            <li><a href="#" data-category="Romance">Romance</a></li>
+                            <li><a href="#" data-category="Drama">Drama</a></li>
+                            <li><a href="#" data-category="Crime">Crime</a></li>
+                            <li><a href="#" data-category="Environment">Environment</a></li>
+                            <li><a href="#" data-category="Space">Space</a></li>
+                            <li><a href="#" data-category="Politics">Politics</a></li>
+                        </div>
                     </ul>
-                </div>
-            </aside>
+                    <a href="#" id="toggleCategories"><i class='bi bi-arrow-down-short'></i>&nbsp;See More</a>
+                </div>    
+                <br>
+                <div class="popular-debates">
+                    <h4>Popular Debates</h4>
+                    <ul id="popularList">
+                        <!-- Dynamically populate popular debates here -->
+                    </ul>
+                </div>            
+            </aside>  
             <!-- Main Feed -->
             <p id="loading">Loading...</p>
             <div class="feed" id="debatesFeed">
@@ -169,10 +198,26 @@
 </script>
     <!-- Bootstrap core JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript">
+        const extraCategories = document.querySelector(".extra-categories");
+            const toggleCategories = document.getElementById("toggleCategories");
+
+            toggleCategories.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (extraCategories.style.display === "none") {
+                    extraCategories.style.display = "block";
+                    toggleCategories.innerHTML = "<i class='bi bi-arrow-up-short'></i>&nbsp;See Less";
+                } else {
+                    extraCategories.style.display = "none";
+                    toggleCategories.innerHTML = "<i class='bi bi-arrow-down-short'></i>&nbsp;See More";
+                }
+            });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
 
             document.getElementById("loading").style.display = "block";
+
 
             // Function to load MD5 hashing library
     function loadMd5Library() {
@@ -190,7 +235,7 @@
     setTimeout(function() {
     const debatesFeed = document.getElementById("debatesFeed");
     const searchInput = document.getElementById("searchInput");
-    const categoryLinks = document.querySelectorAll(".category-filter a");
+    const categoryLinks = document.querySelectorAll(".category-filter li a");
 
     // Function to generate Gravatar URL
     function getGravatarUrl(email, size = 150) {
@@ -360,6 +405,7 @@
 
     document.getElementById("loading").style.display = "none";
 }, 1000);
+
 });
 
     </script>

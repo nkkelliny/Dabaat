@@ -85,4 +85,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         await fetchUserProfile();
+
+        const popularList = document.getElementById("popularList");
+
+    // Fetch popular debates
+    async function fetchPopularDebates() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/home/popular`); // Replace with the correct API endpoint
+            if (!response.ok) throw new Error("Failed to fetch popular debates.");
+
+            const popularDebates = await response.json();
+
+            console.log("Popular Debates:", JSON.stringify(popularDebates));
+
+            // Clear the existing list
+            popularList.innerHTML = "";
+
+            // Populate the popular debates list
+            popularDebates.forEach((debate) => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <a href="/debate/${debate.id}">
+                        ${debate.title}
+                    </a>
+                `;
+                popularList.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Error fetching popular debates:", error);
+            popularList.innerHTML = `<p class="text-danger">Error loading popular debates.</p>`;
+        }
+    };
+
+    // Fetch and display popular debates on page load
+    fetchPopularDebates();
     });

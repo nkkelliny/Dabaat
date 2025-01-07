@@ -98,6 +98,9 @@ app.use('/api/users', require('./routes/users'));
 // Debate Routes
 app.use('/api/debates', require('./routes/debates'));
 
+// Home Routes
+app.use('/api/home', require('./routes/home'));
+
 // Topics Routes
 app.use('/api/topics', require('./routes/topics'));
 
